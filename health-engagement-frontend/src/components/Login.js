@@ -1,69 +1,78 @@
 import React, { useState } from 'react';
-import { TextField, Button, Typography } from '@mui/material';
-import { apiCall } from './apiService'; // Adjust the path as necessary
+import { Container, TextField, Button, Typography } from '@mui/material';
+import axios from 'axios';
 
-const Login = () => {
+function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(''); // State to store error messages
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const response = await apiCall('http://localhost:5001/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        data: { email, password },
-      });
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      // Handle successful login
+      console.log('Email:', email, 'Password:', password); // Log inputs
+      const response = await axios.post('/api/auth/login', { email, password });
+      localStorage.setItem('token', response.data.token); // Store token in localStorage
+      console.log(response.data);
+
+      //  redirect the user..dashboard
+      window.location.href = '/dashboard';
     } catch (error) {
-      if (error.message.includes('NetworkError')) {
-        setError('Network error: Please check your internet connection.');
-      } else if (error.message.includes('Server error')) {
-        setError('Server error: Please try again later.');
+      if (error.response) {
+        console.error('Login error', error.response.data);
+        setError(error.response.data.message || 'Invalid credentials'); // Customize as needed
       } else {
-        setError(`Login failed: ${error.message}`);
+        console.error('Login error', error.message);
+        setError('Server error, please try again later.');
       }
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Typography variant="h4">Login</Typography>
-      <TextField
-        variant="outlined"
-        margin="normal"
-        required
-        fullWidth
-        id="email"
-        label="Email Address"
-        name="email"
-        autoComplete="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <TextField
-        variant="outlined"
-        margin="normal"
-        required
-        fullWidth
-        name="password"
-        label="Password"
-        type="password"
-        id="password"
-        autoComplete="current-password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      {error && <Typography color="error">{error}</Typography>}
-      <Button type="submit" fullWidth variant="contained" color="primary">
+    <Container maxWidth="xs">
+      <Typography variant="h5" component="h1" gutterBottom>
         Login
-      </Button>
-    </form>
+      </Typography>
+      <form onSubmit={handleSubmit}>
+        <TextField
+          variant="outlined"
+          margin="normal"
+          required
+          fullWidth
+          id="email"
+          label="Email Address"
+          name="email"
+          autoComplete="email"
+          autoFocus
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <TextField
+          variant="outlined"
+          margin="normal"
+          required
+          fullWidth
+          name="password"
+          label="Password"
+          type="password"
+          id="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        {error && <Typography color="error">{error}</Typography>} {/* Display error message */}
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          color="primary"
+          sx={{ mt: 3, mb: 2 }}
+        >
+          Sign In
+        </Button>
+      </form>
+    </Container>
   );
-};
+}
 
 export default Login;

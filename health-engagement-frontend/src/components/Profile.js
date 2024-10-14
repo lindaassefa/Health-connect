@@ -1,74 +1,85 @@
-import React, { useEffect, useState } from 'react';
-import { Container, Typography, TextField, Button, Box, Checkbox, FormGroup, FormControlLabel } from '@mui/material';
-import { fetchProfile, updateProfile } from './apiService'; // Adjust the path as necessary
+import React, { useState, useEffect } from 'react';
+import { Container, Typography, TextField, Button, Box, IconButton } from '@mui/material';
+import axios from 'axios';
+import AddIcon from '@mui/icons-material/Add';  // Import the Add icon
 
-const conditions = ['Asthma', 'Digestive Issues', 'Mild Anxiety'];
-
-const Profile = () => {
+function Profile() {
   const [profile, setProfile] = useState({
     username: '',
     email: '',
     age: '',
-    name: '',
-    location: '',
-    chronicConditions: [],
+    chronicConditions: '',
     medications: '',
-    profilePicture: null
+    profilePicture: '',  // Added profilePicture field
   });
+  const [profilePicture, setProfilePicture] = useState(null);  // State for profile picture
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const profileData = await fetchProfile();
-        setProfile(profileData.data);
-      } catch (error) {
-        setError('Failed to fetch profile');
-        console.error('Profile fetch error:', error);
-      }
-    };
-
-    loadProfile();
+    fetchProfile();
   }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/profile', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProfile(response.data);  
+    } catch (error) {
+      setError('Error fetching profile');
+      console.error('Profile fetch error', error);
+    }
+  };
 
   const handleChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
 
-  const handleConditionChange = (condition) => {
-    setProfile(prevProfile => ({
-      ...prevProfile,
-      chronicConditions: prevProfile.chronicConditions.includes(condition)
-        ? prevProfile.chronicConditions.filter(c => c !== condition)
-        : [...prevProfile.chronicConditions, condition]
-    }));
+  // Handle profile picture change
+  const handlePictureChange = (e) => {
+    setProfilePicture(e.target.files[0]);
   };
 
-  const handleFileChange = (event) => {
-    setProfile(prevProfile => ({
-      ...prevProfile,
-      profilePicture: event.target.files[0]
-    }));
-  };
-
+  // Handle profile update (excluding profile picture)
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const formData = new FormData();
-      for (const key in profile) {
-        if (key === 'chronicConditions') {
-          formData.append(key, JSON.stringify(profile[key]));
-        } else if (key === 'profilePicture' && profile[key]) {
-          formData.append(key, profile[key]);
-        } else {
-          formData.append(key, profile[key]);
-        }
-      }
-      await updateProfile(formData);
+      const token = localStorage.getItem('token');
+      await axios.put('/api/profile', profile, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       alert('Profile updated successfully');
     } catch (error) {
       setError('Error updating profile');
       console.error('Profile update error', error);
+    }
+  };
+
+  // Handle profile picture upload separately
+  const handlePictureUpload = async () => {
+    const formData = new FormData();
+    formData.append('profilePicture', profilePicture);  // Append the file to form data
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('/api/profile/upload-picture', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      // Update the profilePicture in the state to display the uploaded image
+      setProfile(prevProfile => ({
+        ...prevProfile,
+        profilePicture: response.data.profilePicture  // Update state with the new profile picture path
+      }));
+
+      alert('Profile picture updated successfully');
+    } catch (error) {
+      setError('Error uploading profile picture');
+      console.error('Profile picture upload error', error);
     }
   };
 
@@ -110,39 +121,12 @@ const Profile = () => {
         <TextField
           margin="normal"
           fullWidth
-          id="name"
-          label="Full Name"
-          name="name"
-          value={profile.name}
+          id="chronicConditions"
+          label="Chronic Conditions"
+          name="chronicConditions"
+          value={profile.chronicConditions}
           onChange={handleChange}
         />
-        <TextField
-          margin="normal"
-          fullWidth
-          id="location"
-          label="Location"
-          name="location"
-          value={profile.location}
-          onChange={handleChange}
-        />
-        <Typography variant="h6" component="h2" gutterBottom>
-          Chronic Conditions
-        </Typography>
-        <FormGroup>
-          {conditions.map((condition) => (
-            <FormControlLabel
-              key={condition}
-              control={
-                <Checkbox
-                  checked={profile.chronicConditions.includes(condition)}
-                  onChange={() => handleConditionChange(condition)}
-                  name={condition}
-                />
-              }
-              label={condition}
-            />
-          ))}
-        </FormGroup>
         <TextField
           margin="normal"
           fullWidth
@@ -151,22 +135,36 @@ const Profile = () => {
           name="medications"
           value={profile.medications}
           onChange={handleChange}
-          multiline
-          rows={4}
         />
-        <input
-          accept="image/*"
-          style={{ display: 'none' }}
-          id="raised-button-file"
-          type="file"
-          onChange={handleFileChange}
-        />
-        <label htmlFor="raised-button-file">
-          <Button variant="contained" component="span">
-            Upload Profile Picture
-          </Button>
-        </label>
-        {profile.profilePicture && <Typography>{profile.profilePicture.name}</Typography>}
+
+        {/* Profile Picture with Overlaying Add Icon */}
+        <div style={{ position: 'relative', display: 'inline-block', marginTop: '20px' }}>
+          <img
+            src={profile.profilePicture ? `http://localhost:5003${profile.profilePicture}` : '/images/default.png'}  // Display profile picture or placeholder
+            alt="Profile"
+            style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover' }}  // Circular styling
+          />
+          {/* Add Button (Overlay) */}
+          <IconButton
+            style={{
+              position: 'absolute',
+              bottom: '10px',
+              right: '10px',
+              backgroundColor: 'white',
+              borderRadius: '50%'
+            }}
+            component="label"
+          >
+            <AddIcon />
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              onChange={handlePictureChange}
+            />
+          </IconButton>
+        </div>
+
         <Button
           type="submit"
           fullWidth
@@ -176,8 +174,18 @@ const Profile = () => {
           Update Profile
         </Button>
       </Box>
+
+      {/* Separate button for profile picture upload */}
+      <Button
+        onClick={handlePictureUpload}
+        fullWidth
+        variant="outlined"
+        sx={{ mt: 3 }}
+      >
+        Save Profile Picture
+      </Button>
     </Container>
   );
-};
+}
 
 export default Profile;

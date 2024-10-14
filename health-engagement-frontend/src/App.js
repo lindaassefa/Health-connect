@@ -8,9 +8,18 @@ import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
 import Profile from './components/Profile';
-import WebSocketComponent from './components/WebSocketComponent';
-
-const theme = createTheme();
+//temelkech
+import Dashboard from './components/Dashboard';
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+});
 
 function App() {
   return (
@@ -22,8 +31,9 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          
+          <Route path="/dashboard" element={<Dashboard />} /> 
           <Route path="/profile" element={<Profile />} />
-          <Route path="/websocket" element={<WebSocketComponent />} />
         </Routes>
       </Router>
     </ThemeProvider>

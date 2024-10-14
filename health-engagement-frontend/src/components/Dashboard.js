@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, CircularProgress, Button, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { fetchProfile } from './apiService'; // Import fetchProfile
+import axios from 'axios';
 
 function Dashboard() {
   const [dashboardData, setDashboardData] = useState(null);
@@ -10,9 +10,11 @@ function Dashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Fetch profile data instead of dashboard data
-        const response = await fetchProfile();
-        setDashboardData(response.data); // Assuming response contains the necessary dashboard data
+        const token = localStorage.getItem('token');
+        const response = await axios.get('/api/protected/dashboard', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setDashboardData(response.data);
       } catch (error) {
         setError('Error fetching dashboard data');
         console.error('Dashboard error', error);
@@ -30,7 +32,7 @@ function Dashboard() {
         Welcome to Your Dashboard
       </Typography>
       <Typography variant="body1" paragraph>
-        {dashboardData.message} {/* Adjust according to your response structure */}
+        {dashboardData.message}
       </Typography>
       <Box mt={3}>
         <Button component={Link} to="/profile" variant="contained" color="primary">

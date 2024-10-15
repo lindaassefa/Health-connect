@@ -1,0 +1,21 @@
+/* Post.css */
+.post {
+    max-width: 600px; /* This will restrict the width of the post */
+    margin: 20px auto; /* Center the post on the page */
+    border: 1px solid #ddd; /* Add a border to the post */
+    padding: 10px;
+    background-color: #fff;
+  }
+  
+  .post img {
+    width: 100%; /* Make the image responsive */
+    height: auto; /* Maintain the aspect ratio */
+    object-fit: cover;
+  }
+  
+  .caption {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #333;
+  }
+  

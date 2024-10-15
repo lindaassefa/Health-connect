@@ -8,6 +8,8 @@ const authRoutes = require('./routes/authRoutes');
 const authMiddleware = require('./middleware/auth');
 const protectedRoutes = require('./routes/protectedRoutes');
 const profileRoutes = require('./routes/profileRoutes');
+const postRoutes = require('./routes/postRoutes');
+const Post = require('./models/post');  // Import the Post model
 
 dotenv.config();
 
@@ -23,7 +25,7 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 // Serve the 'uploads/' folder as static content
-app.use('/uploads', express.static('uploads')); // Added for serving uploaded profile pictures
+app.use('/uploads', express.static('uploads'));  // Serving uploaded profile pictures and post images
 
 // Profile Routes
 app.use('/api/profile', profileRoutes);
@@ -31,6 +33,9 @@ app.use('/api/profile', profileRoutes);
 // Auth and Protected Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/protected', authMiddleware, protectedRoutes);
+
+// Post Routes
+app.use('/api/posts', postRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
@@ -50,7 +55,8 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5003;
 
-sequelize.sync({ force: false })  // Changed force to false to avoid data loss
+// Sync the models and avoid dropping existing tables by using `alter: true`
+sequelize.sync({ alter: true })  // `alter: true` will only modify the existing schema without losing data
   .then(() => {
     console.log('Database synced');
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));  // Fixed string interpolation

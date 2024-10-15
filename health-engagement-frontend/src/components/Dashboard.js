@@ -34,12 +34,23 @@ function Dashboard() {
       <Typography variant="body1" paragraph>
         {dashboardData.message}
       </Typography>
+      
       <Box mt={3}>
-        <Button component={Link} to="/profile" variant="contained" color="primary">
+        {/* Button to go to Profile */}
+        <Button component={Link} to="/profile" variant="contained" color="primary" sx={{ mb: 2 }}>
           View Profile
         </Button>
+        
+        {/* Button to go to Create Post page */}
+        <Button component={Link} to="/create-post" variant="contained" color="secondary" sx={{ ml: 2 }}>
+          Create a New Post
+        </Button>
+        
+        {/* Button to go to View All Posts page */}
+        <Button component={Link} to="/posts" variant="contained" color="secondary" sx={{ ml: 2 }}>
+          View All Posts
+        </Button>
       </Box>
-      {/* Add more dashboard content here */}
     </Container>
   );
 }

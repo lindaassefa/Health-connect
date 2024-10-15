@@ -36,3 +36,36 @@
     transform: rotate(360deg);
   }
 }
+
+/* Added post-image class */
+.post-image {
+  max-width: 100%;   /* Ensure image doesn't exceed container width */
+  max-height: 400px; /* Set maximum height for images */
+  width: auto;       /* Maintain aspect ratio */
+  height: auto;      /* Maintain aspect ratio */
+  border-radius: 8px; /* Optional: Adds rounded corners */
+  object-fit: cover; /* Ensure image fits nicely within the given area */
+  margin: 20px 0;    /* Adds spacing around the image */
+}
+/* Assuming you have a .post class for the container */
+.post {
+  width: 50%; /* Adjust this as needed */
+  margin: 10px auto; /* Center the post */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.post img {
+  width: 100%; /* Make image fit the post width */
+  height: auto; /* Keep aspect ratio */
+  border-radius: 8px; /* Round the edges of the image */
+}
+
+.post .caption {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #333;
+} 

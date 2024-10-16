@@ -1,11 +1,13 @@
 import React from 'react';
-import './Post.css'; // Ensure this path is correct for your project structure
+import './Post.css';
 
 function Post({ imageUrl, caption }) {
   return (
     <div className="post">
-      <img src={imageUrl} alt="Post" />
-      <div className="caption">{caption}</div>
+      <img src={imageUrl} alt="Post" className="post-img" /> {/* Correctly apply the class */}
+      <div className="caption">
+        {caption}
+      </div>
     </div>
   );
 }

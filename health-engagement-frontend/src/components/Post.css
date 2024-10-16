@@ -1,21 +1,23 @@
 /* Post.css */
 .post {
-    max-width: 600px; /* This will restrict the width of the post */
-    margin: 20px auto; /* Center the post on the page */
-    border: 1px solid #ddd; /* Add a border to the post */
+    max-width: 600px; /* Set a max width for the post container */
+    margin: 20px auto; /* Center the post horizontally */
+    border: 1px solid #ddd; /* Add a light border */
     padding: 10px;
     background-color: #fff;
-  }
-  
-  .post img {
-    width: 100%; /* Make the image responsive */
-    height: auto; /* Maintain the aspect ratio */
-    object-fit: cover;
-  }
-  
-  .caption {
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Light shadow for elevation */
+}
+
+.post-img {
+    width: 100%;   /* Image fills the width of the post container */
+    max-height: 300px; /* Set a maximum height for the image */
+    object-fit: cover; /* Ensures image keeps aspect ratio and fills the space */
+    border-radius: 8px; /* Rounded corners for images */
+}
+
+.caption {
     margin-top: 10px;
     font-size: 14px;
     color: #333;
-  }
-  
+}

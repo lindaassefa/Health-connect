@@ -24,10 +24,12 @@ exports.createPost = async (req, res) => {
   }
 };
 
-// Get all posts (with user information)
-exports.getPosts = async (req, res) => {
+// Get posts for the logged-in user only
+exports.getUserPosts = async (req, res) => {
   try {
+    const userId = req.user.id;
     const posts = await Post.findAll({
+      where: { userId }, // Filter posts by the user's ID
       include: {
         model: User,
         as: 'user',
@@ -38,7 +40,7 @@ exports.getPosts = async (req, res) => {
 
     res.status(200).json(posts);
   } catch (error) {
-    console.error('Error fetching posts:', error);
+    console.error('Error fetching user posts:', error);
     res.status(500).json({ error: 'Error fetching posts' });
   }
 };

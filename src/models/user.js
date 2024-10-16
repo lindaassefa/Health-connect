@@ -39,6 +39,10 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  location: {  // New field for location
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   profilePicture: {  
     type: DataTypes.STRING,   // Fix: Added the type definition for profilePicture
     allowNull: true,

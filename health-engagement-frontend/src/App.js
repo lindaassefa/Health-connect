@@ -7,10 +7,10 @@ import Header from './components/Header';
 import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
+import Dashboard from './components/Dashboard';  
 import Profile from './components/Profile';
-import Dashboard from './components/Dashboard';
-import CreatePost from './components/CreatePost';  // Import Create Post component
-import PostList from './components/PostList';      // Import Post List component
+import CreatePost from './components/CreatePost';
+import PostList from './components/PostList';  // Import the PostList component
 
 const theme = createTheme({
   palette: {
@@ -30,17 +30,15 @@ function App() {
       <Router>
         <Header />
         <Routes>
-          <Route path="/" element={<Home />} />
+          {/* Modify the home route to render PostList */}
+          <Route path="/" element={<PostList />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} /> 
           <Route path="/profile" element={<Profile />} />
-          
-          {/* Add the Create Post route */}
           <Route path="/create-post" element={<CreatePost />} />
-
-          {/* Add the Post List route to display posts */}
-          <Route path="/posts" element={<PostList />} />
+          {/* Include a route to display posts if needed */}
+          <Route path="/posts" element={<PostList />} /> 
         </Routes>
       </Router>
     </ThemeProvider>

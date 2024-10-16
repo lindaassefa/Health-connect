@@ -1,3 +1,4 @@
+/* General styling */
 .App {
   text-align: center;
 }
@@ -37,35 +38,38 @@
   }
 }
 
-/* Added post-image class */
-.post-image {
-  max-width: 100%;   /* Ensure image doesn't exceed container width */
-  max-height: 400px; /* Set maximum height for images */
-  width: auto;       /* Maintain aspect ratio */
-  height: auto;      /* Maintain aspect ratio */
-  border-radius: 8px; /* Optional: Adds rounded corners */
-  object-fit: cover; /* Ensure image fits nicely within the given area */
-  margin: 20px 0;    /* Adds spacing around the image */
-}
-/* Assuming you have a .post class for the container */
+/* Post styling */
 .post {
-  width: 50%; /* Adjust this as needed */
-  margin: 10px auto; /* Center the post */
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  max-width: 600px; /* Set a max width for the post container */
+  margin: 20px auto; /* Center the post horizontally */
+  border: 1px solid #ddd; /* Add a light border */
+  padding: 15px;
   background-color: #fff;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Light shadow for elevation */
 }
 
-.post img {
-  width: 100%; /* Make image fit the post width */
-  height: auto; /* Keep aspect ratio */
-  border-radius: 8px; /* Round the edges of the image */
+/* Image within a post */
+.post-img {
+  width: 100%; /* Image fills the width of the post container */
+  max-height: 300px; /* Set a maximum height for the image */
+  object-fit: cover; /* Ensures image keeps aspect ratio and fills the space */
+  border-radius: 8px; /* Rounded corners for images */
+  margin-bottom: 10px; /* Add some spacing below the image */
 }
 
-.post .caption {
+/* Caption for the post */
+.caption {
   margin-top: 10px;
   font-size: 14px;
   color: #333;
-} 
+}
+
+/* Profile picture in post */
+.profile-pic {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}

@@ -4,11 +4,11 @@ const profileController = require('../controllers/profileController');
 const authMiddleware = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
+
 // Multer configuration for storing files
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Directory to save uploaded files
+    cb(null, path.join(__dirname, '../../uploads/')); // Ensure the correct path
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}_${file.originalname}`);

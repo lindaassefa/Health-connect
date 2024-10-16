@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, TextField, Button, Box, IconButton } from '@mui/material';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
-import AddIcon from '@mui/icons-material/Add';  // Import the Add icon
+import AddIcon from '@mui/icons-material/Add';
 
 function Profile() {
   const [profile, setProfile] = useState({
@@ -10,10 +11,12 @@ function Profile() {
     age: '',
     chronicConditions: '',
     medications: '',
-    profilePicture: '',  // Added profilePicture field
+    location: '',
+    profilePicture: ''
   });
-  const [profilePicture, setProfilePicture] = useState(null);  // State for profile picture
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     fetchProfile();
@@ -25,7 +28,7 @@ function Profile() {
       const response = await axios.get('/api/profile', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setProfile(response.data);  
+      setProfile(response.data);
     } catch (error) {
       setError('Error fetching profile');
       console.error('Profile fetch error', error);
@@ -36,32 +39,36 @@ function Profile() {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
 
-  // Handle profile picture change
-  const handlePictureChange = (e) => {
-    setProfilePicture(e.target.files[0]);
-  };
-
-  // Handle profile update (excluding profile picture)
-  const handleSubmit = async (e) => {
+  const handleProfileUpdate = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.put('/api/profile', profile, {
+      await axios.put('/api/profile', {
+        age: profile.age,
+        chronicConditions: profile.chronicConditions,
+        medications: profile.medications,
+        location: profile.location
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Profile updated successfully');
+      setSuccessMessage('Profile updated successfully');
+      fetchProfile();
     } catch (error) {
       setError('Error updating profile');
       console.error('Profile update error', error);
     }
   };
 
-  // Handle profile picture upload separately
-  const handlePictureUpload = async () => {
-    const formData = new FormData();
-    formData.append('profilePicture', profilePicture);  // Append the file to form data
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+  };
 
+  const handlePictureUpload = async () => {
+    if (!selectedFile) return;
     try {
+      const formData = new FormData();
+      formData.append('profilePicture', selectedFile);
+
       const token = localStorage.getItem('token');
       const response = await axios.post('/api/profile/upload-picture', formData, {
         headers: {
@@ -69,121 +76,117 @@ function Profile() {
           Authorization: `Bearer ${token}`
         }
       });
-
-      // Update the profilePicture in the state to display the uploaded image
-      setProfile(prevProfile => ({
-        ...prevProfile,
-        profilePicture: response.data.profilePicture  // Update state with the new profile picture path
-      }));
-
-      alert('Profile picture updated successfully');
+      setProfile({ ...profile, profilePicture: response.data.profilePicture });
+      setSuccessMessage('Profile picture updated successfully');
+      fetchProfile();
     } catch (error) {
       setError('Error uploading profile picture');
       console.error('Profile picture upload error', error);
     }
   };
 
+  if (error) return <Typography color="error">{error}</Typography>;
+
   return (
     <Container maxWidth="sm">
-      <Typography variant="h4" component="h1" gutterBottom>
-        Your Profile
-      </Typography>
-      {error && <Typography color="error">{error}</Typography>}
-      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+      <Box mt={3} textAlign="center">
+        {/* Profile Picture */}
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          <img
+            src={profile.profilePicture ? `http://localhost:5003${profile.profilePicture}` : '/images/default.png'}
+            alt="Profile"
+            style={{ width: '100px', height: '100px', borderRadius: '50%' }}
+          />
+          <IconButton
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              backgroundColor: '#fff',
+              borderRadius: '50%'
+            }}
+            component="label"
+          >
+            <AddIcon />
+            <input type="file" hidden onChange={handleFileChange} />
+          </IconButton>
+        </div>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handlePictureUpload} // Call the handlePictureUpload function when clicked
+          style={{ marginTop: '10px' }}
+        >
+          Upload Picture
+        </Button>
+      </Box>
+      <form onSubmit={handleProfileUpdate}>
         <TextField
-          margin="normal"
           fullWidth
-          id="username"
+          margin="normal"
           label="Username"
-          name="username"
           value={profile.username}
           disabled
         />
         <TextField
-          margin="normal"
           fullWidth
-          id="email"
-          label="Email Address"
-          name="email"
+          margin="normal"
+          label="Email"
           value={profile.email}
           disabled
         />
         <TextField
-          margin="normal"
           fullWidth
-          id="age"
+          margin="normal"
           label="Age"
           name="age"
-          type="number"
           value={profile.age}
           onChange={handleChange}
         />
         <TextField
-          margin="normal"
           fullWidth
-          id="chronicConditions"
+          margin="normal"
           label="Chronic Conditions"
           name="chronicConditions"
           value={profile.chronicConditions}
           onChange={handleChange}
         />
         <TextField
-          margin="normal"
           fullWidth
-          id="medications"
+          margin="normal"
           label="Medications"
           name="medications"
           value={profile.medications}
           onChange={handleChange}
         />
-
-        {/* Profile Picture with Overlaying Add Icon */}
-        <div style={{ position: 'relative', display: 'inline-block', marginTop: '20px' }}>
-          <img
-            src={profile.profilePicture ? `http://localhost:5003${profile.profilePicture}` : '/images/default.png'}  // Display profile picture or placeholder
-            alt="Profile"
-            style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover' }}  // Circular styling
-          />
-          {/* Add Button (Overlay) */}
-          <IconButton
-            style={{
-              position: 'absolute',
-              bottom: '10px',
-              right: '10px',
-              backgroundColor: 'white',
-              borderRadius: '50%'
-            }}
-            component="label"
-          >
-            <AddIcon />
-            <input
-              type="file"
-              hidden
-              accept="image/*"
-              onChange={handlePictureChange}
-            />
-          </IconButton>
-        </div>
-
-        <Button
-          type="submit"
+        <TextField
           fullWidth
-          variant="contained"
-          sx={{ mt: 3, mb: 2 }}
-        >
-          Update Profile
+          margin="normal"
+          label="Location"
+          name="location"
+          value={profile.location}
+          onChange={handleChange}
+        />
+        
+        <Box mt={2}>
+          <Button type="submit" variant="contained" color="primary">
+            Update Profile
+          </Button>
+        </Box>
+        {successMessage && (
+          <Typography color="primary" style={{ marginTop: '10px' }}>
+            {successMessage}
+          </Typography>
+        )}
+      </form>
+      <Box mt={3}>
+        <Button component={Link} to="/create-post" variant="contained" color="primary" style={{ marginRight: '10px' }}>
+          Create a New Post
+        </Button>
+        <Button component={Link} to="/posts" variant="contained" color="secondary">
+          View All Posts
         </Button>
       </Box>
-
-      {/* Separate button for profile picture upload */}
-      <Button
-        onClick={handlePictureUpload}
-        fullWidth
-        variant="outlined"
-        sx={{ mt: 3 }}
-      >
-        Save Profile Picture
-      </Button>
     </Container>
   );
 }

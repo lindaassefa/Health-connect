@@ -1,18 +1,16 @@
 const User = require('../models/user');
 const path = require('path');
+const fs = require('fs');
 
 // Fetch profile
 exports.getProfile = async (req, res) => {
   try {
-    console.log('Fetching profile for user ID:', req.user.id);  // Log user ID
     const user = await User.findByPk(req.user.id, {
-      attributes: ['id', 'username', 'email', 'age', 'chronicConditions', 'medications', 'profilePicture']
+      attributes: ['id', 'username', 'email', 'age', 'chronicConditions', 'medications', 'location', 'profilePicture']
     });
     if (!user) {
-      console.error('User not found for ID:', req.user.id);  // Log when user is not found
       return res.status(404).json({ message: 'User not found' });
     }
-    console.log('User found:', user);  // Log user data
     res.json(user);
   } catch (error) {
     console.error('Error fetching profile:', error);
@@ -20,13 +18,12 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-
 // Update profile details (without picture)
 exports.updateProfile = async (req, res) => {
   try {
-    const { age, chronicConditions, medications } = req.body;
+    const { age, chronicConditions, medications, location } = req.body;
     await User.update(
-      { age, chronicConditions, medications },
+      { age, chronicConditions, medications, location },
       { where: { id: req.user.id } }
     );
     res.json({ message: 'Profile updated successfully' });
@@ -43,7 +40,9 @@ exports.uploadProfilePicture = async (req, res) => {
     if (!file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-    const profilePicture = `/uploads/${file.filename}`; // Path to the uploaded file
+    const profilePicture = `/uploads/${file.filename}`;
+    
+    // Update the user record
     await User.update(
       { profilePicture },
       { where: { id: req.user.id } }

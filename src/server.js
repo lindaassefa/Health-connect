@@ -5,18 +5,18 @@ const morgan = require('morgan');
 const dotenv = require('dotenv');
 const sequelize = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
-const authMiddleware = require('./middleware/auth');
-const protectedRoutes = require('./routes/protectedRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const postRoutes = require('./routes/postRoutes');
+const protectedRoutes = require('./routes/protectedRoutes'); // Add this line
+const authMiddleware = require('./middleware/auth');
+const axios = require('axios');
 
 dotenv.config();
 
 const app = express();
 
-// Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3003'], // Add both origins
+  origin: ['http://localhost:3000', 'http://localhost:3003'],
   credentials: true
 }));
 
@@ -25,37 +25,25 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 // Serve the 'uploads/' folder as static content
-app.use('/uploads', express.static('uploads')); // Ensure this is correctly set up
+app.use('/uploads', express.static('uploads'));
 
 // Profile Routes
-app.use('/api/profile', profileRoutes);
+app.use('/api/profile', authMiddleware, profileRoutes); // Protected route for profile
 
-// Auth and Protected Routes
+// Auth and Post Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/protected', authMiddleware, protectedRoutes);
+app.use('/api/posts', authMiddleware, postRoutes);
 
-// Post Routes
-app.use('/api/posts', postRoutes);
+// Protected Routes (including dashboard)
+app.use('/api/protected', authMiddleware, protectedRoutes); // Add this line
 
 // Basic route
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the Health Support Platform API' });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({
-    error: {
-      message: err.message || 'Internal Server Error',
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    }
-  });
-});
-
 const PORT = process.env.PORT || 5003;
 
-// Sync the models and avoid dropping existing tables by using `alter: true`
 sequelize.sync({ alter: true })
   .then(() => {
     console.log('Database synced');
@@ -64,3 +52,5 @@ sequelize.sync({ alter: true })
   .catch(err => {
     console.error('Error syncing database:', err);
   });
+
+module.exports = app;

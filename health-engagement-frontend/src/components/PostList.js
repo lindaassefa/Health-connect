@@ -6,7 +6,7 @@ function PostList() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    const fetchUserPosts = async () => {
+    const fetchPosts = async () => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.get('/api/posts/user-posts', {
@@ -14,13 +14,13 @@ function PostList() {
             Authorization: `Bearer ${token}`
           }
         });
-        setPosts(response.data);  // Update state with fetched user-specific posts
+        setPosts(response.data);  // Update state with fetched posts
       } catch (error) {
-        console.error('Error fetching user posts:', error);
+        console.error('Error fetching posts:', error);
       }
     };
 
-    fetchUserPosts();
+    fetchPosts();
   }, []);
 
   return (

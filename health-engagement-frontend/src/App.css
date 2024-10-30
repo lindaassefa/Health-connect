@@ -1,75 +1,97 @@
-/* General styling */
+/* App Container */
 .App {
   text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  background-color: var(--background-main);
 }
 
-.App-link {
-  color: #61dafb;
+/* Header Styling */
+.App-header {
+  background: linear-gradient(135deg, rgba(129, 140, 248, 0.1), rgba(236, 72, 153, 0.1));
+  backdrop-filter: blur(10px);
+  padding: var(--spacing-lg);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.nav-link {
+  color: var(--text-primary);
+  text-decoration: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
 }
 
-/* Post styling */
-.post {
-  max-width: 600px; /* Set a max width for the post container */
-  margin: 20px auto; /* Center the post horizontally */
-  border: 1px solid #ddd; /* Add a light border */
-  padding: 15px;
-  background-color: #fff;
-  border-radius: 8px; /* Rounded corners */
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Light shadow for elevation */
+.nav-link:hover {
+  background-color: var(--background-elevated);
+  color: var(--primary-color);
 }
 
-/* Image within a post */
-.post-img {
-  width: 100%; /* Image fills the width of the post container */
-  max-height: 300px; /* Set a maximum height for the image */
-  object-fit: cover; /* Ensures image keeps aspect ratio and fills the space */
-  border-radius: 8px; /* Rounded corners for images */
-  margin-bottom: 10px; /* Add some spacing below the image */
+/* Main Content */
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
 }
 
-/* Caption for the post */
-.caption {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #333;
+/* Cards and Containers */
+.card {
+  background-color: var(--background-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  transition: transform 0.2s ease;
+  border: 1px solid var(--border-color);
 }
 
-/* Profile picture in post */
-.profile-pic {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 10px;
+.card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-color);
+}
+
+/* Form Elements */
+.input-field {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-md);
+  transition: all 0.2s ease;
+  background-color: var(--background-elevated);
+  color: var(--text-primary);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-main);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--background-elevated);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
 }

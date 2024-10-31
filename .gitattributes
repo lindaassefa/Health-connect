@@ -1,0 +1,2 @@
+ai-moderation-env/lib/python3.12/site-packages/torch/lib/libtorch_cpu.dylib filter=lfs diff=lfs merge=lfs -text
+ai-moderation-env/model/model.safetensors filter=lfs diff=lfs merge=lfs -text

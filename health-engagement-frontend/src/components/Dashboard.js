@@ -10,13 +10,13 @@ function Dashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token'); // Retrieve token for authentication
         const response = await axios.get('/api/protected/dashboard', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` }, // Send token in headers
         });
-        setDashboardData(response.data);
+        setDashboardData(response.data); // Set dashboard data
       } catch (error) {
-        setError('Error fetching dashboard data');
+        setError('Error fetching dashboard data'); // Handle error state
         console.error('Dashboard error', error);
       }
     };
@@ -24,7 +24,7 @@ function Dashboard() {
   }, []);
 
   if (error) return <Typography color="error">{error}</Typography>;
-  if (!dashboardData) return <CircularProgress />;
+  if (!dashboardData) return <CircularProgress />; // Show loader until data is fetched
 
   return (
     <Container>
@@ -34,10 +34,25 @@ function Dashboard() {
       <Typography variant="body1" paragraph>
         {dashboardData.message}
       </Typography>
+
+      {/* Buttons for navigation */}
       <Box mt={3}>
-        {/* Single button to navigate to profile */}
-        <Button component={Link} to="/profile" variant="contained" color="primary">
+        <Button
+          component={Link}
+          to="/profile"
+          variant="contained"
+          color="primary"
+          sx={{ marginRight: 2 }}
+        >
           View Profile
+        </Button>
+        <Button
+          component={Link}
+          to="/peers"
+          variant="contained"
+          color="secondary"
+        >
+          Find Your Peers
         </Button>
       </Box>
     </Container>

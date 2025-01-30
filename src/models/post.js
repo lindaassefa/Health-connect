@@ -1,24 +1,22 @@
+// Backend post.js
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database'); // Import sequelize instance
-const User = require('./user'); // Import the User model
+const sequelize = require('../config/database');
+const User = require('./user');
+const Likes = require('./likes');
 
-// Define Post model
 const Post = sequelize.define('Post', {
   caption: {
     type: DataTypes.STRING,
-    allowNull: false,  // Every post should have a caption
+    allowNull: false,
   },
   imageUrl: {
-    type: DataTypes.STRING,  // To store the image URL
-    allowNull: true,  // Optional: Posts can be text-only
-  },
-  likes: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,  // Posts can be liked, default is 0
+    type: DataTypes.STRING,
+    allowNull: true,
   }
 });
 
-// Associate Post with User
 Post.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+Post.hasMany(Likes, { foreignKey: 'postId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+
 
 module.exports = Post;

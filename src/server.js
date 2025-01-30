@@ -7,9 +7,11 @@ const sequelize = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const postRoutes = require('./routes/postRoutes');
-const protectedRoutes = require('./routes/protectedRoutes'); // Add this line
+const protectedRoutes = require('./routes/protectedRoutes');
 const authMiddleware = require('./middleware/auth');
 const axios = require('axios');
+const likeRoutes = require('./routes/likeRoutes');
+const followRoutes = require('./routes/followRoutes'); // Add this line
 
 dotenv.config();
 
@@ -28,14 +30,16 @@ app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
 // Profile Routes
-app.use('/api/profile', authMiddleware, profileRoutes); // Protected route for profile
+app.use('/api/profile', authMiddleware, profileRoutes);
 
 // Auth and Post Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', authMiddleware, postRoutes);
 
 // Protected Routes (including dashboard)
-app.use('/api/protected', authMiddleware, protectedRoutes); // Add this line
+app.use('/api/protected', authMiddleware, protectedRoutes);
+app.use('/api/likes', likeRoutes);
+app.use('/api/follows', authMiddleware, followRoutes); // Add this line
 
 // Basic route
 app.get('/', (req, res) => {

@@ -3,23 +3,58 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 const postController = require('../controllers/postController');
 const multer = require('multer');
+const path = require('path');
 
-// Multer configuration for storing images
+// Configure multer for file storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Directory to save uploaded images
+    cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}_${file.originalname}`);
-  }
+    const fileExt = path.extname(file.originalname);
+    const safeName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}${fileExt}`;
+    
+    cb(null, safeName);
+  },
 });
 
-const upload = multer({ storage: storage });
+// File filter for images
+const fileFilter = (req, file, cb) => {
+  const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  if (allowedMimes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only images are allowed.'), false);
+  }
+};
 
-// Create a new post (with or without an image)
-router.post('/', authMiddleware, upload.single('image'), postController.createPost);
+// Multer configuration
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter,
+});
 
-// Get all posts for the logged-in user
+// Middleware to handle multer errors
+const handleMulterError = (err, req, res, next) => {
+  if (err instanceof multer.MulterError || err.message) {
+    return res.status(400).json({ message: err.message });
+  }
+  next();
+};
+
+// Routes
+router.post(
+  '/',
+  authMiddleware,
+  upload.single('file'),
+  handleMulterError,
+  postController.createPost
+);
+
 router.get('/user-posts', authMiddleware, postController.getUserPosts);
+
+// Add delete route
+router.delete('/:postId', authMiddleware, postController.deletePost);
 
 module.exports = router;

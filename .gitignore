@@ -1,3 +1,4 @@
 node_modules
 .env
-*.log
+*.logai-moderation-env/lib/python3.12/site-packages/torch/
+ai-moderation-env/model/

@@ -22,7 +22,7 @@ exports.login = async (req, res) => {
         if (!user) {
             return res.status(400).json({ error: 'Invalid credentials' });
         }
-        console.log('Input password:', password); // Log the plain text password entered by the user
+        console.log('Input password:', password); //  the plain text password entered by the user
         console.log('Hashed password in DB:', user.password);
         const isMatch = await user.validatePassword(password);
         console.log('Password match result:', isMatch);

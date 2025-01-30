@@ -1,51 +1,80 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
-import Header from './components/Header'; 
-import Home from './components/Home';
+import Header from './components/Header';
 import Login from './components/Login';
 import Register from './components/Register';
-import Dashboard from './components/Dashboard';  
 import Profile from './components/Profile';
-import CreatePost from './components/CreatePost';
 import PostList from './components/PostList';
+import PeerMatching from './components/PeerMatching';
+import ProtectedRoute from './components/ProtectedRoute';
+import UserProfile from './components/UserProfile';
 
 const theme = createTheme({
   palette: {
-    primary: {
-      main: '#6366f1', // New indigo color
-      light: '#818cf8',
-      dark: '#4f46e5',
-    },
-    secondary: {
-      main: '#ec4899', // New pink color
-      light: '#f472b6',
-      dark: '#db2777',
-    },
+    primary: { main: '#00897b' },
+    secondary: { main: '#ff7043' },
   },
+  typography: { fontFamily: 'Poppins, sans-serif' },
 });
 
-function App() {
+const AuthenticatedLayout = ({ children }) => (
+  <>
+    <Header />
+    {children}
+  </>
+);
+
+export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      
       <Router>
-        <Header />
         <Routes>
-          <Route path="/" element={<PostList />} />
+          {/* Authentication Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} /> 
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/create-post" element={<CreatePost />} />
-          <Route path="/posts" element={<PostList />} /> 
+          
+          {/* Root redirect */}
+          <Route path="/" element={<Navigate to="/login" />} />
+
+          {/* Protected Routes */}
+          <Route path="/home" element={
+            <ProtectedRoute>
+              <AuthenticatedLayout>
+                <PostList />
+              </AuthenticatedLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <AuthenticatedLayout>
+                <Profile />
+              </AuthenticatedLayout>
+            </ProtectedRoute>
+          } />
+          <Route path="/peers" element={
+            <ProtectedRoute>
+              <AuthenticatedLayout>
+                <PeerMatching />
+              </AuthenticatedLayout>
+            </ProtectedRoute>
+          } />
+          {/* Add UserProfile Route */}
+          <Route path="/user/:userId" element={
+            <ProtectedRoute>
+              <AuthenticatedLayout>
+                <UserProfile />
+              </AuthenticatedLayout>
+            </ProtectedRoute>
+          } />
+
+          {/* Catch all redirect to login */}
+          <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </Router>
     </ThemeProvider>
   );
 }
-
-export default App;

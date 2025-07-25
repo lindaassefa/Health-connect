@@ -21,4 +21,6 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: OPENAI_API_KEY
-        sync: false 
+        sync: false
+      - key: AI_MODERATION_URL
+        value: https://ai-moderation-service.onrender.com 

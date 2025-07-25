@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
 const path = require('path');
+const axios = require('axios');
 
 dotenv.config();
 
@@ -154,61 +155,79 @@ app.post('/api/auth/login', ensureDbSync, async (req, res) => {
   }
 });
 
-// AI Moderation endpoints (no database required)
+// AI Moderation endpoints - now using external service
 app.post('/api/moderate', async (req, res) => {
   try {
     const { text, threshold = 0.7 } = req.body;
     
-    // Simple content moderation patterns
-    const patterns = {
-      hate_speech: [
-        'unalive', 'kys', 'kill yourself', 'sewerslide', 'neck rope', 'commit sleep',
-        'stop breathing', 'off yourself', 'end it all', 'why are you still alive',
-        'you should not exist', 'k!ll', 'h8', 'd!e', 'r*pe', 'racist', 'nazi', 'bigot'
-      ],
-      offensive: [
-        'fuck', 'f**k', 'f*ck', 'shit', 'sh*t', 'bitch', 'b**ch', 'ass', 'a**',
-        'damn', 'hell', 'piss', 'cock', 'dick', 'pussy', 'cunt', 'whore', 'slut'
-      ]
-    };
+    // Get AI service URL from environment or use fallback
+    const aiServiceUrl = process.env.AI_MODERATION_URL || 'http://localhost:8000';
     
-    const textLower = text.toLowerCase();
-    let detectedPatterns = [];
-    let isToxic = false;
-    let class_name = 'SAFE';
-    let confidence = 0.9;
-    
-    // Check for patterns
-    if (patterns.hate_speech.some(pattern => textLower.includes(pattern))) {
-      detectedPatterns.push('hate_speech');
-      isToxic = true;
-      class_name = 'HATE_SPEECH';
-      confidence = 0.95;
-    } else if (patterns.offensive.some(pattern => textLower.includes(pattern))) {
-      detectedPatterns.push('offensive');
-      isToxic = true;
-      class_name = 'OFFENSIVE';
-      confidence = 0.85;
+    try {
+      // Try to use external AI service first
+      const aiResponse = await axios.post(`${aiServiceUrl}/api/moderate`, {
+        text,
+        threshold
+      }, {
+        timeout: 5000 // 5 second timeout
+      });
+      
+      res.json(aiResponse.data);
+    } catch (aiError) {
+      console.log('AI service unavailable, using fallback moderation:', aiError.message);
+      
+      // Fallback to simple pattern-based moderation
+      const patterns = {
+        hate_speech: [
+          'unalive', 'kys', 'kill yourself', 'sewerslide', 'neck rope', 'commit sleep',
+          'stop breathing', 'off yourself', 'end it all', 'why are you still alive',
+          'you should not exist', 'k!ll', 'h8', 'd!e', 'r*pe', 'racist', 'nazi', 'bigot'
+        ],
+        offensive: [
+          'fuck', 'f**k', 'f*ck', 'shit', 'sh*t', 'bitch', 'b**ch', 'ass', 'a**',
+          'damn', 'hell', 'piss', 'cock', 'dick', 'pussy', 'cunt', 'whore', 'slut'
+        ]
+      };
+      
+      const textLower = text.toLowerCase();
+      let detectedPatterns = [];
+      let isToxic = false;
+      let class_name = 'SAFE';
+      let confidence = 0.9;
+      
+      // Check for patterns
+      if (patterns.hate_speech.some(pattern => textLower.includes(pattern))) {
+        detectedPatterns.push('hate_speech');
+        isToxic = true;
+        class_name = 'HATE_SPEECH';
+        confidence = 0.95;
+      } else if (patterns.offensive.some(pattern => textLower.includes(pattern))) {
+        detectedPatterns.push('offensive');
+        isToxic = true;
+        class_name = 'OFFENSIVE';
+        confidence = 0.85;
+      }
+      
+      const result = {
+        text: text,
+        is_toxic: isToxic,
+        class_name: class_name,
+        confidence: confidence,
+        class_probabilities: {
+          SAFE: isToxic ? 0.1 : 0.9,
+          OFFENSIVE: class_name === 'OFFENSIVE' ? confidence : 0.1,
+          HATE_SPEECH: class_name === 'HATE_SPEECH' ? confidence : 0.0
+        },
+        detected_patterns: detectedPatterns,
+        recommendation: isToxic 
+          ? `Content contains ${detectedPatterns.join(', ')} and should be reviewed`
+          : 'Content appears safe'
+      };
+      
+      res.json(result);
     }
-    
-    const result = {
-      text: text,
-      is_toxic: isToxic,
-      class_name: class_name,
-      confidence: confidence,
-      class_probabilities: {
-        SAFE: isToxic ? 0.1 : 0.9,
-        OFFENSIVE: class_name === 'OFFENSIVE' ? confidence : 0.1,
-        HATE_SPEECH: class_name === 'HATE_SPEECH' ? confidence : 0.0
-      },
-      detected_patterns: detectedPatterns,
-      recommendation: isToxic 
-        ? `Content contains ${detectedPatterns.join(', ')} and should be reviewed`
-        : 'Content appears safe'
-    };
-    
-    res.json(result);
   } catch (error) {
+    console.error('Moderation error:', error);
     res.status(500).json({ error: error.message });
   }
 });

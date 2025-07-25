@@ -8,25 +8,67 @@ const axios = require('axios');
 
 dotenv.config();
 
+// Force Sequelize to sync tables on startup
+const sequelize = require('./config/database');
+const { User, Post, Likes, Follows, Comment, Product } = require('./models');
+
+// Initialize database and create tables
+const initializeDatabase = async () => {
+  try {
+    console.log('Attempting to connect to database...');
+    await sequelize.authenticate();
+    console.log('Database connection successful');
+    
+    console.log('Syncing database tables...');
+    // Force create tables if they don't exist
+    await sequelize.sync({ force: false, alter: true });
+    console.log('Database synced successfully');
+    
+    // Double-check and force create if needed
+    try {
+      await sequelize.query('SELECT 1 FROM "Users" LIMIT 1');
+      console.log('Users table exists and is accessible');
+    } catch (tableError) {
+      console.log('Users table missing, forcing table creation...');
+      await sequelize.sync({ force: true }); // This will recreate all tables
+      console.log('Tables force-created successfully');
+    }
+    
+    // Verify tables exist
+    const tables = await sequelize.showAllSchemas();
+    console.log('Available tables:', tables.map(t => t.name));
+    
+  } catch (err) {
+    console.error('Database initialization error:', err);
+    // Don't exit, let the app continue with fallback
+  }
+};
+
+// Initialize database on startup
+initializeDatabase();
+
 const app = express();
 
 // Database sync middleware
 let dbSynced = false;
-let sequelize = null;
 
 const ensureDbSync = async (req, res, next) => {
   if (!dbSynced) {
     try {
-      // Lazy load database modules
-      if (!sequelize) {
-        sequelize = require('./config/database');
-      }
-      console.log('Attempting to sync database...');
+      console.log('Ensuring database is synced...');
       await sequelize.authenticate();
-      console.log('Database connection successful');
-      await sequelize.sync({ alter: false, force: false });
-      dbSynced = true;
-      console.log('Database synced successfully');
+      
+      // Check if tables exist by trying to query them
+      try {
+        await sequelize.query('SELECT 1 FROM "Users" LIMIT 1');
+        console.log('Database tables already exist');
+        dbSynced = true;
+      } catch (tableError) {
+        console.log('Tables do not exist, creating them...');
+        await sequelize.sync({ force: false, alter: true });
+        console.log('Database tables created successfully');
+        dbSynced = true;
+      }
     } catch (err) {
       console.error('Database sync error:', err.message);
       // Continue anyway, don't block requests
@@ -79,6 +121,45 @@ app.get('/api/db-test', async (req, res) => {
       message: 'Database connection failed',
       error: error.message,
       stack: error.stack
+    });
+  }
+});
+
+// Database initialization endpoint (for manual trigger)
+app.post('/api/db-init', async (req, res) => {
+  try {
+    console.log('Manual database initialization triggered...');
+    const sequelize = require('./config/database');
+    const { User, Post, Likes, Follows, Comment, Product } = require('./models');
+    
+    await sequelize.authenticate();
+    console.log('Database connection successful');
+    
+    await sequelize.sync({ force: false, alter: true });
+    console.log('Database tables synced');
+    
+    // Test table creation
+    const testUser = await User.create({
+      username: 'test_init_user',
+      email: 'test_init@example.com',
+      password: 'testpassword123'
+    });
+    console.log('Test user created:', testUser.id);
+    
+    await testUser.destroy();
+    console.log('Test user cleaned up');
+    
+    res.json({ 
+      status: 'success', 
+      message: 'Database initialized successfully',
+      tables: ['Users', 'Posts', 'Likes', 'Follows', 'Comments', 'Products']
+    });
+  } catch (error) {
+    console.error('Database initialization error:', error);
+    res.status(500).json({ 
+      status: 'error', 
+      message: 'Database initialization failed',
+      error: error.message
     });
   }
 });
@@ -234,6 +315,11 @@ app.post('/api/moderate', async (req, res) => {
 
 // Serve static files from the React build directory
 app.use(express.static(path.join(__dirname, '../health-engagement-frontend/build')));
+
+// Serve database initialization page
+app.get('/db-init', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/db-init.html'));
+});
 
 // Serve React app for all other routes
 app.get('*', (req, res) => {

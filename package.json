@@ -7,6 +7,8 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "build": "cd health-engagement-frontend && npm install && npm run build",
+    "init-db": "node init-db.js",
+    "fix-db": "node fix-database.js",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test:matching": "jest test/contentBasedMatching.test.js",

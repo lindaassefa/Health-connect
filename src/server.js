@@ -6,6 +6,17 @@ const dotenv = require('dotenv');
 const path = require('path');
 const axios = require('axios');
 
+// Import routes
+const postRoutes = require('./routes/postRoutes');
+const profileRoutes = require('./routes/profileRoutes');
+const authRoutes = require('./routes/authRoutes');
+const commentRoutes = require('./routes/commentRoutes');
+const likeRoutes = require('./routes/likeRoutes');
+const productRoutes = require('./routes/productRoutes');
+const eventRoutes = require('./routes/eventRoutes');
+const searchRoutes = require('./routes/searchRoutes');
+const protectedRoutes = require('./routes/protectedRoutes');
+
 dotenv.config();
 
 // Force Sequelize to sync tables on startup
@@ -87,6 +98,17 @@ app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
 
+// Connect routes
+app.use('/api/posts', postRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/likes', likeRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/protected', protectedRoutes);
+
 // Simple health check endpoint (no database required)
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -164,77 +186,16 @@ app.post('/api/db-init', async (req, res) => {
   }
 });
 
-// Simple registration endpoint (with database)
-app.post('/api/auth/register', ensureDbSync, async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
-    
-    // Lazy load User model
-    const User = require('./models/user');
-    
-    console.log('Received registration request:', { username, email });
-    const user = await User.create({ username, email, password });
-    console.log('User created:', user.id);
-    
-    res.status(201).json({ 
-      message: 'User registered successfully', 
-      userId: user.id 
-    });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ 
-      error: 'Error registering user', 
-      details: error.message 
-    });
-  }
-});
-
-// Simple login endpoint (with database)
-app.post('/api/auth/login', ensureDbSync, async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    
-    // Lazy load User model
-    const User = require('./models/user');
-    
-    console.log('Login attempt for email:', email);
-    
-    const user = await User.findOne({ where: { email } });
-    if (!user) {
-      console.log('User not found for email:', email);
-      return res.status(400).json({ error: 'Invalid credentials' });
-    }
-    
-    console.log('User found:', { id: user.id, username: user.username, email: user.email });
-    
-    const isMatch = await user.validatePassword(password);
-    console.log('Password match result:', isMatch);
-    
-    if (!isMatch) {
-      console.log('Password validation failed');
-      return res.status(400).json({ error: 'Invalid credentials' });
-    }
-    
-    console.log('Password validation successful');
-    
-    // Create JWT token
-    const jwt = require('jsonwebtoken');
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    
-    // Send token in response body
-    res.json({ 
-      message: 'Login successful', 
-      userId: user.id, 
-      token 
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ 
-      error: 'Error logging in',
-      details: error.message 
-    });
-  }
-});
+// Apply database sync middleware to all routes that need it
+app.use('/api/auth', ensureDbSync);
+app.use('/api/posts', ensureDbSync);
+app.use('/api/profile', ensureDbSync);
+app.use('/api/comments', ensureDbSync);
+app.use('/api/likes', ensureDbSync);
+app.use('/api/products', ensureDbSync);
+app.use('/api/events', ensureDbSync);
+app.use('/api/search', ensureDbSync);
+app.use('/api/protected', ensureDbSync);
 
 // AI Moderation endpoints - now using external service
 app.post('/api/moderate', async (req, res) => {

@@ -2,10 +2,16 @@ const express = require('express');
 const router = express.Router();
 const { Product } = require('../models');
 const authMiddleware = require('../middleware/auth');
-const ScraperManager = require('../../scrapers/scraper-manager');
 
-// Initialize scraper manager
-const scraperManager = new ScraperManager();
+// Try to load scraper manager, but provide fallback if it fails
+let scraperManager = null;
+try {
+  const ScraperManager = require('../../scrapers/scraper-manager');
+  scraperManager = new ScraperManager();
+} catch (error) {
+  console.log('Scraper manager not available, using fallback mode:', error.message);
+  scraperManager = null;
+}
 
 // Mock scraper functions for fallback
 const mockScraper = async (query, retailer) => {
@@ -165,54 +171,65 @@ router.get("/real-products", async (req, res) => {
   const query = req.query.q || "eczema";
 
   try {
-    console.log(`Using health-focused scrapers for query: ${query}`);
-    
-    // Try health-focused search first (iHerb + Healthline)
-    const healthResults = await scraperManager.searchHealthProducts(query, 12);
+    console.log(`Fetching products for query: ${query}`);
     
     let combined = [];
     
-    if (healthResults.all && healthResults.all.length > 0) {
-      console.log(`Found ${healthResults.all.length} health products from iHerb and Healthline`);
-      combined = healthResults.all.map(product => ({
-        id: product.id,
-        name: product.name,
-        brand: product.brand || 'Unknown Brand',
-        description: product.description || `Great ${query} product`,
-        price: product.price,
-        imageUrl: product.imageUrl || product.image,
-        retailer: product.retailer,
-        rating: product.rating,
-        tags: product.tags || [],
-        conditionTags: product.conditionTags || [],
-        category: product.category || 'Wellness',
-        source: product.source,
-        benefits: product.benefits || [],
-        isRecommendation: product.isRecommendation || false
-      }));
+    // Only try scrapers if they're available
+    if (scraperManager) {
+      try {
+        console.log('Using health-focused scrapers');
+        
+        // Try health-focused search first (iHerb + Healthline)
+        const healthResults = await scraperManager.searchHealthProducts(query, 12);
+        
+        if (healthResults.all && healthResults.all.length > 0) {
+          console.log(`Found ${healthResults.all.length} health products from iHerb and Healthline`);
+          combined = healthResults.all.map(product => ({
+            id: product.id,
+            name: product.name,
+            brand: product.brand || 'Unknown Brand',
+            description: product.description || `Great ${query} product`,
+            price: product.price,
+            imageUrl: product.imageUrl || product.image,
+            retailer: product.retailer,
+            rating: product.rating,
+            tags: product.tags || [],
+            conditionTags: product.conditionTags || [],
+            category: product.category || 'Wellness',
+            source: product.source,
+            benefits: product.benefits || [],
+            isRecommendation: product.isRecommendation || false
+          }));
+        } else {
+          // Fallback to general scrapers if health search fails
+          console.log('Health search failed, trying general scrapers');
+          const results = await scraperManager.searchAllRetailers(query, 'wellness', 12);
+          
+          combined = results.all.map(product => ({
+            id: product.id,
+            name: product.name,
+            brand: product.brand || 'Unknown Brand',
+            description: product.description || `Great ${query} product`,
+            price: product.price,
+            imageUrl: product.image,
+            retailer: product.retailer,
+            rating: product.rating,
+            tags: product.tags || [],
+            conditionTags: product.conditionTags || [],
+            category: product.category || 'Wellness'
+          }));
+        }
+      } catch (scraperError) {
+        console.log('Scraper failed, using fallback:', scraperError.message);
+      }
     } else {
-      // Fallback to general scrapers if health search fails
-      console.log('Health search failed, trying general scrapers');
-      const results = await scraperManager.searchAllRetailers(query, 'wellness', 12);
-      
-      combined = results.all.map(product => ({
-        id: product.id,
-        name: product.name,
-        brand: product.brand || 'Unknown Brand',
-        description: product.description || `Great ${query} product`,
-        price: product.price,
-        imageUrl: product.image,
-        retailer: product.retailer,
-        rating: product.rating,
-        tags: product.tags || [],
-        conditionTags: product.conditionTags || [],
-        category: product.category || 'Wellness'
-      }));
+      console.log('Scraper manager not available, using fallback mode');
     }
 
-    // If scrapers return no results, use comprehensive fallback data
+    // If scrapers return no results or are not available, use comprehensive fallback data
     if (combined.length === 0) {
-      console.log('Scrapers returned no results, using fallback data');
+      console.log('Using fallback data');
       combined = generateFallbackProducts(query);
     }
 
@@ -239,11 +256,22 @@ router.get("/health-recommendations", authMiddleware, async (req, res) => {
     
     console.log(`Getting health recommendations for user: ${userProfile.username}`);
     
-    const recommendations = await scraperManager.getPersonalizedHealthRecommendations(userProfile);
+    let recommendations = [];
     
-    if (recommendations.length > 0) {
-      console.log(`Found ${recommendations.length} condition-based recommendations`);
-      return res.json(recommendations);
+    // Only try scrapers if they're available
+    if (scraperManager) {
+      try {
+        recommendations = await scraperManager.getPersonalizedHealthRecommendations(userProfile);
+        
+        if (recommendations.length > 0) {
+          console.log(`Found ${recommendations.length} condition-based recommendations`);
+          return res.json(recommendations);
+        }
+      } catch (scraperError) {
+        console.log('Scraper failed, using fallback:', scraperError.message);
+      }
+    } else {
+      console.log('Scraper manager not available, using fallback mode');
     }
     
     // Fallback to general wellness products

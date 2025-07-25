@@ -46,6 +46,7 @@
     "openai": "^5.8.2",
     "pg": "^8.13.0",
     "pg-hstore": "^2.3.4",
+    "puppeteer": "^21.0.0",
     "sequelize": "^6.37.3"
   },
   "devDependencies": {

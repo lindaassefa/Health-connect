@@ -14,29 +14,71 @@ exports.createPost = async (req, res) => {
     if (req.file) {
       console.log('Uploaded file path:', req.file.path);
       imageUrl = `/uploads/${req.file.filename}`;
-      const formData = new FormData();
-      formData.append('file', fs.createReadStream(req.file.path));
+      
+      // Use FastAPI moderation endpoint for images
+      try {
+        const formData = new FormData();
+        formData.append('file', fs.createReadStream(req.file.path));
+        
+        const moderationResponse = await axios.post(
+          'http://127.0.0.1:8000/api/moderate-image',
+          formData,
+          {
+            headers: {
+              ...formData.getHeaders(),
+            },
+          }
+        );
+        console.log('Image moderation response:', moderationResponse.data);
 
-      const moderationResponse = await axios.post(
-        'http://127.0.0.1:8000/api/moderate-image',  // Changed to IPv4
-        formData,
-        { headers: { ...formData.getHeaders() } }
-      );
-      console.log('Image moderation response:', moderationResponse.data);
-
-      if (moderationResponse.data.is_toxic) {
+        if (moderationResponse.data.is_toxic) {
+          fs.unlinkSync(req.file.path);
+          return res.status(400).json({ 
+            message: moderationResponse.data.recommendation,
+            details: 'Image content violates community guidelines'
+          });
+        }
+      } catch (moderationError) {
+        console.error('Image moderation failed:', moderationError.message);
+        // For safety, reject posts if moderation service is down
         fs.unlinkSync(req.file.path);
-        return res.status(400).json({ message: moderationResponse.data.recommendation });
+        return res.status(500).json({ 
+          message: 'Image moderation service unavailable. Please try again later.',
+          error: 'Moderation service error'
+        });
       }
     }
 
-    if (caption && isThought) {
+    // Always moderate text content if caption exists
+    if (caption) {
       console.log('Moderating caption:', caption);
-      const moderationResponse = await axios.post('http://127.0.0.1:8000/api/moderate', { text: caption }); // Changed to IPv4
-      console.log('Caption moderation response:', moderationResponse.data);
+      try {
+        const moderationResponse = await axios.post('http://127.0.0.1:8000/api/moderate', { 
+          text: caption,
+          threshold: 0.6  // Lower threshold for stricter moderation
+        });
+        console.log('Caption moderation response:', moderationResponse.data);
 
-      if (moderationResponse.data.is_toxic) {
-        return res.status(400).json({ message: moderationResponse.data.recommendation });
+        if (moderationResponse.data.is_toxic) {
+          // If image was uploaded, delete it before rejecting
+          if (req.file) {
+            fs.unlinkSync(req.file.path);
+          }
+          return res.status(400).json({ 
+            message: moderationResponse.data.recommendation,
+            details: 'Content violates community guidelines'
+          });
+        }
+      } catch (moderationError) {
+        console.error('Caption moderation failed:', moderationError.message);
+        // For safety, reject posts if moderation service is down
+        if (req.file) {
+          fs.unlinkSync(req.file.path);
+        }
+        return res.status(500).json({ 
+          message: 'Content moderation service unavailable. Please try again later.',
+          error: 'Moderation service error'
+        });
       }
     }
 
@@ -63,10 +105,40 @@ exports.createPost = async (req, res) => {
   }
 };
 
+exports.getAllPosts = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const posts = await Post.findAll({
+      include: [
+        { 
+          model: User, 
+          as: 'user', 
+          attributes: ['id', 'username', 'profilePicture'] 
+        },
+        { 
+          model: Likes 
+        }
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+
+    const postsWithLikes = posts.map(post => ({
+      ...post.toJSON(),
+      likeCount: post.Likes.length,
+      isLiked: post.Likes.some(like => like.userId === userId)
+    }));
+
+    res.status(200).json(postsWithLikes);
+  } catch (error) {
+    console.error('Error fetching all posts:', error);
+    res.status(500).json({ message: 'Error fetching posts', error: error.message });
+  }
+};
+
 exports.getUserPosts = async (req, res) => {
   try {
     const userId = req.user.id;
-    const post = await Post.findAll({
+    const posts = await Post.findAll({
       where: { userId },
       include: [
         { model: User, as: 'user', attributes: ['username', 'profilePicture'] },
@@ -75,7 +147,7 @@ exports.getUserPosts = async (req, res) => {
       order: [['createdAt', 'DESC']],
     });
 
-    const postsWithLikes = post.map(post => ({
+    const postsWithLikes = posts.map(post => ({
       ...post.toJSON(),
       likeCount: post.Likes.length,
       isLiked: post.Likes.some(like => like.userId === userId)
@@ -93,11 +165,10 @@ exports.deletePost = async (req, res) => {
     const postId = req.params.postId;
     const userId = req.user.id;
 
-    // Find the post and check ownership
     const post = await Post.findOne({
       where: {
         id: postId,
-        userId: userId // Ensure the post belongs to the user
+        userId: userId
       }
     });
 
@@ -105,7 +176,6 @@ exports.deletePost = async (req, res) => {
       return res.status(404).json({ message: 'Post not found or unauthorized' });
     }
 
-    // If post has an image, delete it from uploads
     if (post.imageUrl) {
       const imagePath = `./uploads/${post.imageUrl.split('/').pop()}`;
       try {
@@ -115,9 +185,7 @@ exports.deletePost = async (req, res) => {
       }
     }
 
-    // Delete the post
     await post.destroy();
-
     res.json({ message: 'Post deleted successfully' });
   } catch (error) {
     console.error('Error deleting post:', error);

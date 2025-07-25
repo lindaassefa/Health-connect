@@ -18,5 +18,4 @@ const Post = sequelize.define('Post', {
 Post.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 Post.hasMany(Likes, { foreignKey: 'postId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 
-
 module.exports = Post;

@@ -3,6 +3,8 @@ const User = require('./user');
 const Post = require('./post');
 const Likes = require('./likes');
 const Follows = require('./Follows');
+const Comment = require('./comment');
+const Product = require('./product');
 
 // Likes associations
 User.hasMany(Likes, { foreignKey: 'userId', as: 'userLikes' });
@@ -32,10 +34,18 @@ Follows.belongsTo(User, { as: 'following', foreignKey: 'followingId' });
 User.hasMany(Follows, { as: 'followerRelations', foreignKey: 'followerId' });
 User.hasMany(Follows, { as: 'followingRelations', foreignKey: 'followingId' });
 
+// Comment associations
+Comment.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+Comment.belongsTo(Post, { foreignKey: 'postId', as: 'post' });
+Post.hasMany(Comment, { foreignKey: 'postId', as: 'comments' });
+User.hasMany(Comment, { foreignKey: 'userId', as: 'userComments' });
+
 module.exports = {
   sequelize,
   User,
   Post,
   Likes,
-  Follows
+  Follows,
+  Comment,
+  Product
 };

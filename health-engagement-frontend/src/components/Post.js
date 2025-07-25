@@ -1,4 +1,3 @@
-// Frontend Post.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Post.css';
@@ -19,10 +18,16 @@ function Post({ postId, imageUrl, caption, initialLikeCount = 0, initialIsLiked 
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setLiked(!liked);
-      setLikeCount(response.data.likeCount);
+      // Only update state if the request was successful
+      if (response.status === 201 || response.status === 200) {
+        setLiked(response.data.isLiked);
+        setLikeCount(response.data.likeCount);
+      }
     } catch (error) {
       console.error('Error updating like:', error);
+      // Revert state on error
+      setLiked(!liked);
+      setLikeCount(prev => liked ? prev - 1 : prev + 1);
     }
   };
 
@@ -42,10 +47,16 @@ function Post({ postId, imageUrl, caption, initialLikeCount = 0, initialIsLiked 
       {imageUrl && <img src={imageUrl} alt="Post" className="post-image" />}
       <div className="post-caption">{caption}</div>
       <div className="post-actions">
-        <span className={`heart-icon ${liked ? 'liked' : ''}`} onClick={handleLike}>
+        <span 
+          className={`heart-icon ${liked ? 'liked' : ''}`} 
+          onClick={handleLike}
+        >
           ❤️ {likeCount}
         </span>
-        <button className="comment-btn" onClick={() => document.getElementById(`comment-${postId}`).focus()}>
+        <button 
+          className="comment-btn" 
+          onClick={() => document.getElementById(`comment-${postId}`).focus()}
+        >
           Comment
         </button>
       </div>

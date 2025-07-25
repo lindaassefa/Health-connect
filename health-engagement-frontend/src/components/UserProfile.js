@@ -151,7 +151,7 @@ function UserProfile() {
     <Container>
       <Box display="flex" alignItems="center" flexDirection="column" marginBottom={4}>
         <img
-          src={profile.profilePicture ? `http://localhost:5003${profile.profilePicture}` : '/images/default.png'}
+          src={profile.profilePicture ? profile.profilePicture : '/images/default.png'}
           alt="Profile"
           style={{ width: '120px', height: '120px', borderRadius: '50%' }}
         />
@@ -208,7 +208,7 @@ function UserProfile() {
                 <ListItem key={follower.id}>
                   <ListItemAvatar>
                     <Avatar 
-                      src={follower.profilePicture ? `http://localhost:5003${follower.profilePicture}` : '/images/default.png'}
+                      src={follower.profilePicture ? follower.profilePicture : '/images/default.png'}
                     />
                   </ListItemAvatar>
                   <ListItemText primary={follower.username} />
@@ -227,7 +227,7 @@ function UserProfile() {
                 <ListItem key={followedUser.id}>
                   <ListItemAvatar>
                     <Avatar 
-                      src={followedUser.profilePicture ? `http://localhost:5003${followedUser.profilePicture}` : '/images/default.png'}
+                      src={followedUser.profilePicture ? followedUser.profilePicture : '/images/default.png'}
                     />
                   </ListItemAvatar>
                   <ListItemText primary={followedUser.username} />
@@ -247,7 +247,7 @@ function UserProfile() {
             <Box className="post-card">
               {post.imageUrl && (
                 <img
-                  src={`http://localhost:5003${post.imageUrl}`}
+                  src={post.imageUrl}
                   alt="Post"
                   className="post-image"
                 />

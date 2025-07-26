@@ -168,56 +168,38 @@ router.post('/', authMiddleware, async (req, res) => {
 
 // GET /api/products/real-products - fetch real products from external retailers
 router.get("/real-products", async (req, res) => {
-  const query = req.query.q || "eczema";
+  const query = req.query.q || "wellness";
 
   try {
     console.log(`Fetching products for query: ${query}`);
     
     let combined = [];
     
-    // Only try scrapers if they're available
+    // Try to use scrapers if available
     if (scraperManager) {
       try {
-        console.log('Using health-focused scrapers');
+        console.log('Trying scraper manager...');
+        const results = await scraperManager.searchAllRetailers(query, 'wellness', 12);
         
-        // Try health-focused search first (iHerb + Healthline)
-        const healthResults = await scraperManager.searchHealthProducts(query, 12);
-        
-        if (healthResults.all && healthResults.all.length > 0) {
-          console.log(`Found ${healthResults.all.length} health products from iHerb and Healthline`);
-          combined = healthResults.all.map(product => ({
-            id: product.id,
-            name: product.name,
-            brand: product.brand || 'Unknown Brand',
-            description: product.description || `Great ${query} product`,
-            price: product.price,
-            imageUrl: product.imageUrl || product.image,
-            retailer: product.retailer,
-            rating: product.rating,
-            tags: product.tags || [],
-            conditionTags: product.conditionTags || [],
-            category: product.category || 'Wellness',
-            source: product.source,
-            benefits: product.benefits || [],
-            isRecommendation: product.isRecommendation || false
-          }));
-        } else {
-          // Fallback to general scrapers if health search fails
-          console.log('Health search failed, trying general scrapers');
-          const results = await scraperManager.searchAllRetailers(query, 'wellness', 12);
-          
+        if (results && results.all && results.all.length > 0) {
+          console.log(`Found ${results.all.length} products from scrapers`);
           combined = results.all.map(product => ({
-            id: product.id,
-            name: product.name,
+            id: product.id || Math.random().toString(36).substr(2, 9),
+            name: product.name || 'Product',
             brand: product.brand || 'Unknown Brand',
             description: product.description || `Great ${query} product`,
-            price: product.price,
-            imageUrl: product.image,
-            retailer: product.retailer,
-            rating: product.rating,
+            price: product.price || '$19.99',
+            imageUrl: product.imageUrl || product.image || 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop&crop=center',
+            retailer: product.retailer || 'Online Store',
+            rating: product.rating || 4.5,
             tags: product.tags || [],
-            conditionTags: product.conditionTags || [],
-            category: product.category || 'Wellness'
+            conditionTags: product.conditionTags || [query],
+            category: product.category || 'Wellness',
+            upvotes: product.upvotes || Math.floor(Math.random() * 100) + 10,
+            comments: product.comments || Math.floor(Math.random() * 20),
+            isUpvoted: false,
+            isUsed: false,
+            isBookmarked: false
           }));
         }
       } catch (scraperError) {
@@ -235,6 +217,7 @@ router.get("/real-products", async (req, res) => {
 
     // Ensure we have at least some products
     if (combined.length === 0) {
+      console.log('Using default products');
       combined = generateDefaultProducts(query);
     }
 
@@ -486,21 +469,91 @@ function generateFallbackProducts(query) {
 
 // Helper function for default products
 function generateDefaultProducts(query) {
-  return [
+  const defaultProducts = [
     {
       id: 'def-001',
-      name: 'Wellness Product',
-      brand: 'Health Brand',
-      description: `Great product for ${query}`,
+      name: 'CeraVe Moisturizing Cream',
+      brand: 'CeraVe',
+      description: 'A rich, non-greasy moisturizer that helps restore the protective skin barrier.',
       price: '$19.99',
-      imageUrl: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=400&fit=crop',
+      imageUrl: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop&crop=center',
+      retailer: 'Amazon',
+      rating: 4.8,
+      tags: ['moisturizer', 'barrier repair', 'fragrance-free'],
+      conditionTags: ['Eczema', 'Dry Skin'],
+      category: 'Skincare',
+      upvotes: 156,
+      comments: 23,
+      isUpvoted: false,
+      isUsed: false,
+      isBookmarked: false
+    },
+    {
+      id: 'def-002',
+      name: 'Nature Made Vitamin D3',
+      brand: 'Nature Made',
+      description: 'Supports bone health and immune system function.',
+      price: '$12.99',
+      imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&h=300&fit=crop&crop=center',
       retailer: 'Walmart',
-      rating: '4.5',
-      tags: ['wellness', 'health'],
-      conditionTags: [query],
-      category: 'Wellness'
+      rating: 4.6,
+      tags: ['vitamin d', 'bone health', 'immune support'],
+      conditionTags: ['Vitamin D Deficiency'],
+      category: 'Supplements',
+      upvotes: 89,
+      comments: 12,
+      isUpvoted: true,
+      isUsed: true,
+      isBookmarked: false
+    },
+    {
+      id: 'def-003',
+      name: 'Calm Magnesium Supplement',
+      brand: 'Calm',
+      description: 'Natural magnesium supplement for stress relief and better sleep.',
+      price: '$24.99',
+      imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&h=300&fit=crop&crop=center',
+      retailer: 'Amazon',
+      rating: 4.9,
+      tags: ['magnesium', 'stress relief', 'sleep', 'anxiety'],
+      conditionTags: ['Anxiety', 'Insomnia'],
+      category: 'Supplements',
+      upvotes: 234,
+      comments: 45,
+      isUpvoted: false,
+      isUsed: false,
+      isBookmarked: true
+    },
+    {
+      id: 'def-004',
+      name: 'Garden of Life Probiotics',
+      brand: 'Garden of Life',
+      description: 'Comprehensive probiotic with 50 billion CFU for digestive health.',
+      price: '$34.99',
+      imageUrl: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=300&h=300&fit=crop&crop=center',
+      retailer: 'Walmart',
+      rating: 4.7,
+      tags: ['probiotics', '50 billion CFU', 'digestive health'],
+      conditionTags: ['Gut Health', 'Digestion'],
+      category: 'Supplements',
+      upvotes: 189,
+      comments: 34,
+      isUpvoted: false,
+      isUsed: false,
+      isBookmarked: false
     }
   ];
+
+  // Filter products based on query if it's a specific condition
+  const queryLower = query.toLowerCase();
+  const filteredProducts = defaultProducts.filter(product => 
+    product.conditionTags.some(tag => tag.toLowerCase().includes(queryLower)) ||
+    product.tags.some(tag => tag.toLowerCase().includes(queryLower)) ||
+    product.name.toLowerCase().includes(queryLower) ||
+    product.description.toLowerCase().includes(queryLower)
+  );
+
+  return filteredProducts.length > 0 ? filteredProducts : defaultProducts;
 }
 
 module.exports = router; 

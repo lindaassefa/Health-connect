@@ -156,26 +156,38 @@ function ProductDiscovery() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (query = 'wellness') => {
     try {
       setLoading(true);
       setError(null);
       
+      console.log('Fetching products from API with query:', query);
+      
       // Try to fetch real products first
-      const response = await fetch('/api/products/real-products?q=wellness&limit=50');
+      const response = await fetch(`/api/products/real-products?q=${encodeURIComponent(query)}&limit=50`);
+      console.log('API response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('API response data length:', data?.length);
+        
         if (data && data.length > 0) {
+          console.log('Setting real products:', data.length);
           setProducts(data);
           return;
+        } else {
+          console.log('No real products found, using mock data');
         }
+      } else {
+        console.log('API request failed with status:', response.status);
       }
       
       // Fallback to mock data
+      console.log('Using mock products as fallback');
       setProducts(mockProducts);
     } catch (err) {
       console.error('Error fetching products:', err);
-      setError('Failed to load products');
+      setError('Failed to load products from server, showing mock data instead');
       setProducts(mockProducts);
     } finally {
       setLoading(false);
@@ -210,12 +222,29 @@ function ProductDiscovery() {
     );
   };
 
+  const handleConditionClick = (condition) => {
+    setSearchQuery(condition);
+    fetchProducts(condition);
+  };
+
   const handleTagToggle = (tag) => {
     setSelectedTags(prev => 
       prev.includes(tag) 
         ? prev.filter(t => t !== tag)
         : [...prev, tag]
     );
+  };
+
+  const handleTagClick = (tag) => {
+    setSearchQuery(tag);
+    fetchProducts(tag);
+  };
+
+  const handleSearch = (event) => {
+    event.preventDefault();
+    if (searchQuery.trim()) {
+      fetchProducts(searchQuery.trim());
+    }
   };
 
   const handleUpvote = async (productId) => {
@@ -399,7 +428,7 @@ function ProductDiscovery() {
       </Box>
 
       {/* Search Bar */}
-      <Box sx={{ mb: { xs: 3, md: 4 } }}>
+      <Box component="form" onSubmit={handleSearch} sx={{ mb: { xs: 3, md: 4 } }}>
         <TextField
           fullWidth
           placeholder="Search products, brands, conditions, or tags..."
@@ -411,15 +440,35 @@ function ProductDiscovery() {
                 <SearchIcon sx={{ color: '#A8D5BA' }} />
               </InputAdornment>
             ),
-            endAdornment: searchQuery && (
+            endAdornment: (
               <InputAdornment position="end">
-                <IconButton 
-                  onClick={() => setSearchQuery('')} 
-                  size="small"
-                  sx={{ color: '#A8D5BA' }}
+                {searchQuery && (
+                  <IconButton 
+                    onClick={() => setSearchQuery('')} 
+                    size="small"
+                    sx={{ color: '#A8D5BA' }}
+                  >
+                    <ClearIcon />
+                  </IconButton>
+                )}
+                <Button
+                  type="submit"
+                  variant="contained"
+                  sx={{
+                    ml: 1,
+                    background: 'linear-gradient(45deg, #A8D5BA, #F8BBD9)',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #81C784, #F48FB1)',
+                    },
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    minWidth: 'auto',
+                    px: 2
+                  }}
                 >
-                  <ClearIcon />
-                </IconButton>
+                  Search
+                </Button>
               </InputAdornment>
             )
           }}
@@ -507,7 +556,7 @@ function ProductDiscovery() {
                 <Chip
                   key={condition}
                   label={condition}
-                  onClick={() => handleConditionToggle(condition)}
+                  onClick={() => handleConditionClick(condition)}
                   color={selectedConditions.includes(condition) ? 'primary' : 'default'}
                   variant={selectedConditions.includes(condition) ? 'filled' : 'outlined'}
                   size={isMobile ? "small" : "medium"}
@@ -516,8 +565,10 @@ function ProductDiscovery() {
                     backgroundColor: selectedConditions.includes(condition) ? '#A8D5BA' : 'transparent',
                     color: selectedConditions.includes(condition) ? '#2C3E50' : '#A8D5BA',
                     borderColor: '#A8D5BA',
+                    cursor: 'pointer',
                     '&:hover': {
-                      backgroundColor: selectedConditions.includes(condition) ? '#81C784' : 'rgba(168, 213, 186, 0.1)'
+                      backgroundColor: selectedConditions.includes(condition) ? '#81C784' : 'rgba(168, 213, 186, 0.1)',
+                      transform: 'scale(1.05)'
                     }
                   }}
                 />
@@ -536,7 +587,7 @@ function ProductDiscovery() {
                 <Chip
                   key={tag}
                   label={tag}
-                  onClick={() => handleTagToggle(tag)}
+                  onClick={() => handleTagClick(tag)}
                   color={selectedTags.includes(tag) ? 'secondary' : 'default'}
                   variant={selectedTags.includes(tag) ? 'filled' : 'outlined'}
                   size={isMobile ? "small" : "medium"}
@@ -545,8 +596,10 @@ function ProductDiscovery() {
                     backgroundColor: selectedTags.includes(tag) ? '#F8BBD9' : 'transparent',
                     color: selectedTags.includes(tag) ? '#2C3E50' : '#F8BBD9',
                     borderColor: '#F8BBD9',
+                    cursor: 'pointer',
                     '&:hover': {
-                      backgroundColor: selectedTags.includes(tag) ? '#F48FB1' : 'rgba(248, 187, 217, 0.1)'
+                      backgroundColor: selectedTags.includes(tag) ? '#F48FB1' : 'rgba(248, 187, 217, 0.1)',
+                      transform: 'scale(1.05)'
                     }
                   }}
                 />

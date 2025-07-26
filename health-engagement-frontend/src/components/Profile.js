@@ -734,6 +734,54 @@ function Profile() {
       </Grid>
       </Paper>
 
+      {/* Followers Dialog */}
+      <Dialog open={showFollowers} onClose={() => setShowFollowers(false)}>
+        <DialogTitle>Followers</DialogTitle>
+        <DialogContent>
+          <List>
+            {followers.map((follower) => (
+              <ListItem 
+                key={follower.id}
+                button
+                onClick={() => handleUserClick(follower.id)}
+                sx={{ cursor: 'pointer' }}
+              >
+                <ListItemAvatar>
+                  <Avatar 
+                    src={follower.profilePicture ? follower.profilePicture : '/images/default.png'}
+                  />
+                </ListItemAvatar>
+                <ListItemText primary={follower.username} />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+      </Dialog>
+
+      {/* Following Dialog */}
+      <Dialog open={showFollowing} onClose={() => setShowFollowing(false)}>
+        <DialogTitle>Following</DialogTitle>
+        <DialogContent>
+          <List>
+            {following.map((followedUser) => (
+              <ListItem 
+                key={followedUser.id}
+                button
+                onClick={() => handleUserClick(followedUser.id)}
+                sx={{ cursor: 'pointer' }}
+              >
+                <ListItemAvatar>
+                  <Avatar 
+                    src={followedUser.profilePicture ? followedUser.profilePicture : '/images/default.png'}
+                  />
+                </ListItemAvatar>
+                <ListItemText primary={followedUser.username} />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+      </Dialog>
+
       {/* Rest of the profile content */}
       {/* ... existing profile content ... */}
       

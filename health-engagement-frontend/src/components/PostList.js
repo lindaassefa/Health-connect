@@ -38,6 +38,7 @@ import {
 } from "@mui/icons-material";
 import axios from "axios";
 import CreatePost from "./CreatePost";
+import { useNavigate } from 'react-router-dom';
 
 function PostList() {
   const [posts, setPosts] = useState([]);
@@ -47,6 +48,7 @@ function PostList() {
   const [commentInputs, setCommentInputs] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '' });
   const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
 
     const fetchPosts = async () => {
       try {
@@ -179,6 +181,10 @@ function PostList() {
     }
   };
 
+  const handleUserClick = (userId) => {
+    navigate(`/user/${userId}`);
+  };
+
   const formatTimeAgo = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -244,11 +250,17 @@ function PostList() {
                     width: 48,
                     height: 48,
                     background: 'linear-gradient(45deg, #FF6B6B, #4ECDC4)',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                      transition: 'transform 0.2s ease-in-out'
+                    }
                   }}
+                  onClick={() => handleUserClick(post.user?.id)}
                 >
                   {post.user?.username?.charAt(0)?.toUpperCase()}
                 </Avatar>
-                <Box sx={{ flex: 1 }}>
+                <Box sx={{ flex: 1, cursor: 'pointer' }} onClick={() => handleUserClick(post.user?.id)}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#14171A' }}>
                     {post.user?.username}
                   </Typography>

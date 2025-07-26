@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './PeerMatching.css';
 
 const PeerMatching = () => {
   const [peers, setPeers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPeers();
@@ -26,7 +28,10 @@ const PeerMatching = () => {
     }
   };
 
-  const handleFollow = async (userId, isFollowing) => {
+  const handleFollow = async (userId, isFollowing, event) => {
+    // Prevent the click from bubbling up to the card click handler
+    event.stopPropagation();
+    
     try {
       const token = localStorage.getItem('token');
       if (isFollowing) {
@@ -44,6 +49,10 @@ const PeerMatching = () => {
     }
   };
 
+  const handleProfileClick = (userId) => {
+    navigate(`/user/${userId}`);
+  };
+
   if (loading) {
     return <div className="peer-matching-container">Loading...</div>;
   }
@@ -54,7 +63,12 @@ const PeerMatching = () => {
       <div className="peer-cards">
         {peers.length > 0 ? (
           peers.map((peer) => (
-            <div className="peer-card" key={peer.userId || peer.id}>
+            <div 
+              className="peer-card" 
+              key={peer.userId || peer.id}
+              onClick={() => handleProfileClick(peer.userId || peer.id)}
+              style={{ cursor: 'pointer' }}
+            >
               <img
                 src={peer.profilePicture || '/images/default.png'}
                 alt={`${peer.username}'s profile`}
@@ -72,7 +86,7 @@ const PeerMatching = () => {
               )}
               <button
                 className={`follow-btn ${peer.isFollowing ? 'following' : ''}`}
-                onClick={() => handleFollow(peer.userId || peer.id, peer.isFollowing)}
+                onClick={(e) => handleFollow(peer.userId || peer.id, peer.isFollowing, e)}
               >
                 {peer.isFollowing ? 'Unfollow' : 'Follow'}
               </button>

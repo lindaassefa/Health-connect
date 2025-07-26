@@ -22,6 +22,7 @@ import {
   Favorite as HeartIcon,
   FavoriteBorder as HeartBorderIcon
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const conditionEmojis = {
@@ -108,6 +109,8 @@ function MatchPage() {
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState(new Set());
   const [skipped, setSkipped] = useState(new Set());
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchMatches();
@@ -154,6 +157,25 @@ function MatchPage() {
     setMatches(prev => prev.filter(match => match.id !== matchId));
   };
 
+  const handleProfileClick = (userId) => {
+    navigate(`/user/${userId}`);
+  };
+
+  const handleFollow = async (userId, event) => {
+    // Prevent the click from bubbling up to the card click handler
+    event.stopPropagation();
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`/api/follows/${userId}`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Optionally refresh matches or update UI
+    } catch (error) {
+      console.error('Error following user:', error);
+    }
+  };
+
   const renderMatchCard = (match) => (
     <Card 
       key={match.id} 
@@ -162,11 +184,13 @@ function MatchPage() {
         borderRadius: 3,
         boxShadow: 3,
         transition: 'transform 0.2s, box-shadow 0.2s',
+        cursor: 'pointer',
         '&:hover': {
           transform: 'translateY(-4px)',
           boxShadow: 6
         }
       }}
+      onClick={() => handleProfileClick(match.user.id)}
     >
       <CardContent sx={{ p: 3 }}>
         {/* Header */}
@@ -203,93 +227,75 @@ function MatchPage() {
         </Box>
 
         {/* Shared Conditions */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-            Shared Conditions:
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {match.sharedConditions.map((condition) => (
-              <Chip
-                key={condition}
-                label={`${conditionEmojis[condition] || '🏥'} ${condition}`}
-                size="small"
-                color="primary"
-                variant="outlined"
-                sx={{ fontSize: '0.75rem' }}
-              />
-            ))}
+        {match.sharedConditions && match.sharedConditions.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Shared Conditions:
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+              {match.sharedConditions.map((condition) => (
+                <Chip
+                  key={condition}
+                  label={condition}
+                  size="small"
+                  variant="outlined"
+                  sx={{ fontSize: '0.7rem' }}
+                />
+              ))}
+            </Box>
           </Box>
-        </Box>
+        )}
 
         {/* Vibe Tags */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-            Vibe:
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {match.vibeTags.map((vibe) => (
-              <Chip
-                key={vibe}
-                label={`${vibeEmojis[vibe] || '✨'} ${vibe}`}
-                size="small"
-                variant="outlined"
-                sx={{ 
-                  fontSize: '0.75rem',
-                  borderColor: 'primary.light',
-                  color: 'primary.main'
-                }}
-              />
-            ))}
+        {match.vibeTags && match.vibeTags.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Personality:
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+              {match.vibeTags.map((tag) => (
+                <Chip
+                  key={tag}
+                  label={tag}
+                  size="small"
+                  variant="outlined"
+                  sx={{ fontSize: '0.7rem' }}
+                />
+              ))}
+            </Box>
           </Box>
-        </Box>
+        )}
 
         {/* Matching Reason */}
-        <Paper sx={{ p: 2, mb: 3, bgcolor: 'primary.light', borderRadius: 2 }}>
-          <Typography variant="body2" sx={{ color: 'primary.contrastText' }}>
-            💫 {match.matchingReason}
+        {match.matchingReason && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {match.matchingReason}
           </Typography>
-        </Paper>
-
-        <Divider sx={{ mb: 2 }} />
+        )}
 
         {/* Action Buttons */}
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
-            variant="contained"
+            variant="outlined"
+            size="small"
             startIcon={<ChatIcon />}
-            onClick={() => handleStartChat(match.id)}
-            sx={{
-              flex: 1,
-              background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #5a6fd8 0%, #6a4190 100%)'
-              }
+            onClick={(e) => {
+              e.stopPropagation();
+              // Handle chat functionality
             }}
+            sx={{ flex: 1 }}
           >
-            Start Chat
+            Message
           </Button>
-          
-          <IconButton
-            onClick={() => handleAddToFavorites(match.id)}
-            sx={{
-              color: favorites.has(match.id) ? 'warning.main' : 'text.secondary',
-              border: '1px solid',
-              borderColor: favorites.has(match.id) ? 'warning.main' : 'divider'
-            }}
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<HeartBorderIcon />}
+            onClick={(e) => handleFollow(match.user.id, e)}
+            sx={{ flex: 1 }}
           >
-            {favorites.has(match.id) ? <StarIcon /> : <StarBorderIcon />}
-          </IconButton>
-          
-          <IconButton
-            onClick={() => handleSkip(match.id)}
-            sx={{
-              color: 'text.secondary',
-              border: '1px solid',
-              borderColor: 'divider'
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
+            Follow
+          </Button>
         </Box>
       </CardContent>
     </Card>

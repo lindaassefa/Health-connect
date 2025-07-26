@@ -9,6 +9,7 @@
     "build": "cd health-engagement-frontend && npm install && npm run build",
     "init-db": "node init-db.js",
     "fix-db": "node fix-database.js",
+    "generate-fake-data": "node generate-fake-data.js",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test:matching": "jest test/contentBasedMatching.test.js",

@@ -43,9 +43,26 @@ const conditionEmojis = {
   'Fibromyalgia': '🦴',
   'Endometriosis': '🩸',
   'ADHD': '⚡',
-  'Autism': '🧩',
   'Lupus': '🦋',
   'Rheumatoid Arthritis': '🦴'
+};
+
+const conditionColors = {
+  'Eczema': '#E3F2FD',
+  'PCOS': '#F3E5F5',
+  'Acne': '#FFEBEE',
+  'IBS': '#E8F5E8',
+  'Anxiety': '#FFF3E0',
+  'Depression': '#E1F5FE',
+  'Diabetes': '#FCE4EC',
+  'Hypertension': '#FFEBEE',
+  'Asthma': '#E0F2F1',
+  'Migraines': '#F1F8E9',
+  'Fibromyalgia': '#F9FBE7',
+  'Endometriosis': '#FCE4EC',
+  'ADHD': '#FFF8E1',
+  'Lupus': '#E8EAF6',
+  'Rheumatoid Arthritis': '#F3E5F5'
 };
 
 const getConditionColor = (condition) => {
@@ -63,7 +80,6 @@ const getConditionColor = (condition) => {
     'Fibromyalgia': '#E0F2F1',
     'Endometriosis': '#FCE4EC',
     'ADHD': '#FFF3E0',
-    'Autism': '#E8F5E8',
     'Lupus': '#F1F8E9',
     'Rheumatoid Arthritis': '#E8EAF6'
   };

@@ -29,7 +29,6 @@ const generateFakeProfiles = async (numberOfProfiles) => {
         'Fibromyalgia',
         'Endometriosis',
         'ADHD',
-        'Autism',
         'Lupus',
         'Rheumatoid Arthritis',
         'Hypertension',

@@ -30,10 +30,9 @@ import {
 } from '@mui/icons-material';
 import axios from 'axios';
 
-const chronicConditions = [
-  'Eczema', 'PCOS', 'Acne', 'IBS', 'Anxiety', 'Depression', 
-  'Diabetes', 'Hypertension', 'Asthma', 'Migraines', 'Fibromyalgia',
-  'Endometriosis', 'ADHD', 'Autism', 'Lupus', 'Rheumatoid Arthritis'
+const conditionOptions = [
+  'Eczema', 'PCOS', 'Anxiety', 'Depression', 'Diabetes', 'Asthma', 'IBS', 'Migraines', 
+  'Fibromyalgia', 'Endometriosis', 'ADHD', 'Lupus', 'Rheumatoid Arthritis'
 ];
 
 const conditionEmojis = {
@@ -50,7 +49,6 @@ const conditionEmojis = {
   'Fibromyalgia': '🦴',
   'Endometriosis': '🩸',
   'ADHD': '⚡',
-  'Autism': '🧩',
   'Lupus': '🦋',
   'Rheumatoid Arthritis': '🦴'
 };

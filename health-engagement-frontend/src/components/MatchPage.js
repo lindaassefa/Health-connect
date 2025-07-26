@@ -39,7 +39,6 @@ const conditionEmojis = {
   'Fibromyalgia': '🦴',
   'Endometriosis': '🩸',
   'ADHD': '⚡',
-  'Autism': '🧩',
   'Lupus': '🦋',
   'Rheumatoid Arthritis': '🦴'
 };

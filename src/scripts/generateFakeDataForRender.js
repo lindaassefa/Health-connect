@@ -30,7 +30,6 @@ const healthConditions = [
   'Fibromyalgia',
   'Endometriosis',
   'ADHD',
-  'Autism',
   'Lupus',
   'Rheumatoid Arthritis',
   'Hypertension',

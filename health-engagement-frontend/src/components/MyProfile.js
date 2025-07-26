@@ -63,7 +63,6 @@ const conditionEmojis = {
   'Fibromyalgia': '🦴',
   'Endometriosis': '🩸',
   'ADHD': '⚡',
-  'Autism': '🧩',
   'Lupus': '🦋',
   'Rheumatoid Arthritis': '🦴'
 };
@@ -82,7 +81,7 @@ const vibeEmojis = {
 const chronicConditions = [
   'Eczema', 'PCOS', 'Acne', 'IBS', 'Anxiety', 'Depression', 
   'Diabetes', 'Hypertension', 'Asthma', 'Migraines', 'Fibromyalgia',
-  'Endometriosis', 'ADHD', 'Autism', 'Lupus', 'Rheumatoid Arthritis'
+  'Endometriosis', 'ADHD', 'Lupus', 'Rheumatoid Arthritis'
 ];
 
 const vibeTags = [

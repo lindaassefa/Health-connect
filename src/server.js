@@ -310,6 +310,9 @@ app.post('/api/generate-fake-data', async (req, res) => {
 // Serve static files from the React build directory
 app.use(express.static(path.join(__dirname, '../health-engagement-frontend/build')));
 
+// Serve uploaded files (profile pictures, etc.)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Serve database initialization page
 app.get('/db-init', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/db-init.html'));

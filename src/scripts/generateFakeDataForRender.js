@@ -1,6 +1,15 @@
 const { faker } = require('@faker-js/faker');
 const { Client } = require('pg');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
+const path = require('path');
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, '../../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('📁 Created uploads directory');
+}
 
 // Use DATABASE_URL from environment (for Render deployment)
 const client = new Client({

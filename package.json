@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "AI-Driven Social Platform for Chronic Condition Support",
   "main": "src/server.js",
+  "bin": {
+    "health-fake-data": "./bin/health-fake-data.js"
+  },
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",

@@ -7,15 +7,23 @@ const profileController = require('../controllers/profileController');
 const postController = require('../controllers/postController');
 const multer = require('multer');
 const HybridMatcher = require('../logic/hybridMatching');
+const fs = require('fs');
+const path = require('path');
 
 // Initialize hybrid matcher
 const hybridMatcher = new HybridMatcher();
 
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, '../../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('📁 Created uploads directory');
+}
+
 // Multer configuration for storing profile images
 const storage = multer.diskStorage({
-
   destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Directory to save uploaded images
+    cb(null, uploadsDir); // Directory to save uploaded images
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}_${file.originalname}`);

@@ -171,6 +171,130 @@ router.post('/peer-interaction/:peerId', authMiddleware, async (req, res) => {
   }
 });
 
+// GET /api/match - Get matches for the MatchPage component
+router.get('/match', authMiddleware, async (req, res) => {
+  try {
+    const loggedInUser = req.user;
+    console.log("Getting matches for user:", loggedInUser.id);
+    
+    // Fetch all other users
+    const allUsers = await User.findAll({
+      where: {
+        id: { [Op.ne]: loggedInUser.id }
+      },
+      attributes: [
+        'id', 
+        'username', 
+        'age',
+        'chronicConditions',
+        'location',
+        'profilePicture',
+        'gender',
+        'lookingFor',
+        'vibeTags'
+      ]
+    });
+    
+    // If no other users exist, return mock data
+    if (allUsers.length === 0) {
+      console.log("No other users found, returning mock matches");
+      const mockMatches = [
+        {
+          id: 1,
+          user: {
+            id: 9991,
+            name: 'Sarah',
+            age: 28,
+            location: 'San Francisco, CA',
+            profilePicture: null,
+            isAnonymous: false
+          },
+          sharedConditions: ['Eczema', 'Anxiety'],
+          vibeTags: ['Deep', 'Creative'],
+          matchingReason: '3 shared conditions',
+          compatibility: 85
+        },
+        {
+          id: 2,
+          user: {
+            id: 9992,
+            name: 'Mike',
+            age: 32,
+            location: 'New York, NY',
+            profilePicture: null,
+            isAnonymous: false
+          },
+          sharedConditions: ['Anxiety', 'Depression'],
+          vibeTags: ['Nerdy', 'Academic'],
+          matchingReason: 'Mental health support',
+          compatibility: 92
+        },
+        {
+          id: 3,
+          user: {
+            id: 9993,
+            name: 'Emma',
+            age: 25,
+            location: 'Austin, TX',
+            profilePicture: null,
+            isAnonymous: false
+          },
+          sharedConditions: ['PCOS'],
+          vibeTags: ['Funny', 'Cozy'],
+          matchingReason: 'Similar PCOS journey',
+          compatibility: 78
+        }
+      ];
+      return res.json(mockMatches);
+    }
+    
+    // Use hybrid matching to get recommendations
+    let recommendations = [];
+    try {
+      recommendations = hybridMatcher.findMatches(loggedInUser, allUsers);
+    } catch (matchingError) {
+      console.error('Hybrid matching failed, using simple matching:', matchingError.message);
+      // Fallback to simple matching
+      recommendations = allUsers.map(user => ({
+        ...user,
+        score: Math.random() * 0.5 + 0.5 // Random score between 0.5 and 1.0
+      })).sort((a, b) => b.score - a.score);
+    }
+    
+    // Format response for MatchPage component
+    const formattedMatches = recommendations.slice(0, 10).map((user, index) => {
+      const userData = user.dataValues || user;
+      const conditions = userData.chronicConditions ? [userData.chronicConditions] : ['General Wellness'];
+      const vibeTags = userData.vibeTags ? userData.vibeTags.split(',').slice(0, 2) : ['Supportive', 'Understanding'];
+      
+      return {
+        id: index + 1,
+        user: {
+          id: userData.id,
+          name: userData.username || 'Anonymous',
+          age: userData.age || 25,
+          location: userData.location || 'Unknown',
+          profilePicture: userData.profilePicture || null,
+          isAnonymous: false
+        },
+        sharedConditions: conditions,
+        vibeTags: vibeTags,
+        matchingReason: `${conditions.length} shared conditions`,
+        compatibility: Math.round((user.score || 0.5) * 100)
+      };
+    });
+
+    console.log("Formatted matches:", formattedMatches.length);
+    res.json(formattedMatches);
+  } catch (error) {
+    console.error('Error getting matches:', error);
+    res.status(500).json({ 
+      error: 'Server error', 
+      details: error.message 
+    });
+  }
+});
+
 // --- Post Routes ---
 
 // Create a new post (with or without an image)

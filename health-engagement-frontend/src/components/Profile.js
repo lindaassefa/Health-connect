@@ -133,12 +133,21 @@ function Profile() {
         headers: { Authorization: `Bearer ${token}` },
       });
       
-      setFollowers(followersResponse.data);
-      setFollowing(followingResponse.data);
-      setFollowersCount(followersResponse.data.length);
-      setFollowingCount(followingResponse.data.length);
+      // Ensure we always have arrays
+      const followersData = Array.isArray(followersResponse.data) ? followersResponse.data : [];
+      const followingData = Array.isArray(followingResponse.data) ? followingResponse.data : [];
+      
+      setFollowers(followersData);
+      setFollowing(followingData);
+      setFollowersCount(followersData.length);
+      setFollowingCount(followingData.length);
     } catch (error) {
       console.error('Error fetching follow counts:', error);
+      // Set empty arrays on error
+      setFollowers([]);
+      setFollowing([]);
+      setFollowersCount(0);
+      setFollowingCount(0);
     }
   };
 
@@ -691,7 +700,7 @@ function Profile() {
             
             {profile.chronicConditions && profile.chronicConditions.length > 0 && (
               <Box sx={{ mt: 1 }}>
-                {profile.chronicConditions.map((condition) => (
+                {(profile.chronicConditions || []).map((condition) => (
                   <Chip
                     key={condition}
                     label={condition}
@@ -699,8 +708,8 @@ function Profile() {
                     sx={{ mr: 1, mb: 1 }}
                   />
                 ))}
-        </Box>
-      )}
+              </Box>
+            )}
 
             <Box sx={{ mt: 2 }}>
               <Button
@@ -739,7 +748,7 @@ function Profile() {
         <DialogTitle>Followers</DialogTitle>
         <DialogContent>
           <List>
-            {followers.map((follower) => (
+            {(followers || []).map((follower) => (
               <ListItem 
                 key={follower.id}
                 button
@@ -763,7 +772,7 @@ function Profile() {
         <DialogTitle>Following</DialogTitle>
         <DialogContent>
           <List>
-            {following.map((followedUser) => (
+            {(following || []).map((followedUser) => (
               <ListItem 
                 key={followedUser.id}
                 button

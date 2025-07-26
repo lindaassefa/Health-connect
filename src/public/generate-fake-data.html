@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Fake Data - Health Engagement App</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        .button {
+            background: linear-gradient(45deg, #A8D5BA, #7FB069);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+        }
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #F44336;
+        }
+        .info {
+            background: rgba(33, 150, 243, 0.2);
+            border: 1px solid #2196F3;
+        }
+        .loading {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .features {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .features h3 {
+            margin-top: 0;
+        }
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+        .features li {
+            padding: 5px 0;
+            position: relative;
+            padding-left: 25px;
+        }
+        .features li:before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 Generate Fake Data</h1>
+        
+        <p>This will create realistic fake users, posts, and interactions for testing your Health Engagement App.</p>
+        
+        <button class="button" onclick="generateFakeData()" id="generateBtn">
+            🚀 Generate Fake Data
+        </button>
+        
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Generating fake data... This may take a minute.</p>
+        </div>
+        
+        <div class="status" id="status"></div>
+        
+        <div class="features">
+            <h3>What will be generated:</h3>
+            <ul>
+                <li>20 realistic user profiles with health conditions</li>
+                <li>50 health-related posts with community content</li>
+                <li>Follow relationships between users</li>
+                <li>Like interactions on posts</li>
+                <li>Realistic names, locations, and personalities</li>
+                <li>Condition-specific post topics</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        async function generateFakeData() {
+            const button = document.getElementById('generateBtn');
+            const loading = document.getElementById('loading');
+            const status = document.getElementById('status');
+            
+            // Disable button and show loading
+            button.disabled = true;
+            button.textContent = '⏳ Generating...';
+            loading.style.display = 'block';
+            status.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/generate-fake-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    status.className = 'status success';
+                    status.innerHTML = `
+                        <h3>✅ Success!</h3>
+                        <p>${result.message}</p>
+                        <p><strong>Generated:</strong></p>
+                        <ul>
+                            <li>20 realistic user profiles</li>
+                            <li>50 health-related posts</li>
+                            <li>Follow relationships</li>
+                            <li>Like interactions</li>
+                        </ul>
+                        <p>You can now test the app with a vibrant community!</p>
+                    `;
+                } else {
+                    status.className = 'status error';
+                    status.innerHTML = `
+                        <h3>❌ Error</h3>
+                        <p>${result.error}</p>
+                        <p><strong>Details:</strong> ${result.details}</p>
+                    `;
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.innerHTML = `
+                    <h3>❌ Network Error</h3>
+                    <p>Failed to connect to the server.</p>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+            } finally {
+                // Re-enable button and hide loading
+                button.disabled = false;
+                button.textContent = '🚀 Generate Fake Data';
+                loading.style.display = 'none';
+                status.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html> 

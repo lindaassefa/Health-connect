@@ -10,6 +10,7 @@
     "init-db": "node init-db.js",
     "fix-db": "node fix-database.js",
     "generate-fake-data": "node generate-fake-data.js",
+    "generate-fake-data-render": "node src/scripts/generateFakeDataForRender.js",
     "lint": "eslint .",
     "format": "prettier --write .",
     "test:matching": "jest test/contentBasedMatching.test.js",

@@ -274,12 +274,50 @@ app.post('/api/moderate', async (req, res) => {
   }
 });
 
+// Add fake data generation endpoint
+app.post('/api/generate-fake-data', async (req, res) => {
+  try {
+    console.log('🎭 Generating fake data via API endpoint...');
+    
+    // Import and run the fake data generator
+    const { exec } = require('child_process');
+    const { promisify } = require('util');
+    const execAsync = promisify(exec);
+    
+    // Run the fake data generation script
+    const { stdout, stderr } = await execAsync('node src/scripts/generateFakeDataForRender.js');
+    
+    console.log('✅ Fake data generation completed:', stdout);
+    if (stderr) {
+      console.error('⚠️ Warnings during fake data generation:', stderr);
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Fake data generated successfully!',
+      output: stdout 
+    });
+  } catch (error) {
+    console.error('❌ Error generating fake data:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to generate fake data',
+      details: error.message 
+    });
+  }
+});
+
 // Serve static files from the React build directory
 app.use(express.static(path.join(__dirname, '../health-engagement-frontend/build')));
 
 // Serve database initialization page
 app.get('/db-init', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/db-init.html'));
+});
+
+// Serve fake data generation page
+app.get('/generate-fake-data', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'generate-fake-data.html'));
 });
 
 // Serve React app for all other routes

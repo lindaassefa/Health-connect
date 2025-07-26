@@ -82,11 +82,17 @@ function ProductCard({ product, onUpvote, onUse, onBookmark, onComment }) {
     isUpvoted = false,
     isUsed = false,
     isBookmarked = false,
-    rating = 0,
+    rating: rawRating = 0,
     useCount = 0,
     recommendedByAI = true,
     tags = []
   } = product;
+
+  // Ensure rating is a number
+  const rating = typeof rawRating === 'string' ? parseFloat(rawRating) : Number(rawRating) || 0;
+
+  // Ensure useCount is a number
+  const safeUseCount = typeof useCount === 'string' ? parseInt(useCount) : Number(useCount) || 0;
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -229,7 +235,7 @@ function ProductCard({ product, onUpvote, onUse, onBookmark, onComment }) {
               color="text.secondary"
               sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}
             >
-              ({useCount ? useCount.toLocaleString() : '0'} users)
+              ({safeUseCount ? safeUseCount.toLocaleString() : '0'} users)
           </Typography>
           </Box>
           <LinearProgress 
@@ -435,7 +441,7 @@ function ProductCard({ product, onUpvote, onUse, onBookmark, onComment }) {
               fontSize: { xs: '0.7rem', md: '0.75rem' }
             }}
           >
-            {useCount ? useCount.toLocaleString() : '0'} people use this
+            {safeUseCount ? safeUseCount.toLocaleString() : '0'} people use this
           </Typography>
           
           {isUsed && (
